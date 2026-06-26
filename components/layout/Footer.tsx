@@ -1,115 +1,152 @@
 "use client";
 
-import { Eye, Phone, Mail } from "lucide-react";
+import React from "react";
+import { motion } from "motion/react";
+import { Eye, Phone, Mail, ArrowRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { CulturalPattern } from "../ui/CulturalPattern";
+
+const footerLinks = [
+  {
+    title: "Life Pillars",
+    links: [
+      { label: "Infant & Mother Care", href: "#" },
+      { label: "Youth & Careers Track", href: "#" },
+      { label: "Senior Years & Pension", href: "#" }
+    ]
+  },
+  {
+    title: "Platform Portal",
+    links: [
+      { label: "Online Personal Space", href: "#" },
+      { label: "Mobile Companion App", href: "#" },
+      { label: "Dedicated Welfare Officers", href: "#" }
+    ]
+  },
+  {
+    title: "Citizen Resources",
+    links: [
+      { label: "Verification Documents", href: "#" },
+      { label: "NIN Integration Help", href: "#" },
+      { label: "Frequently Asked Questions", href: "#" }
+    ]
+  },
+  {
+    title: "Governance",
+    links: [
+      { label: "NDPR Compliance Portal", href: "#" },
+      { label: "National Program Registry", href: "#" },
+      { label: "Technical Status Updates", href: "#" }
+    ]
+  }
+];
 
 export function Footer() {
   return (
-    <footer className="w-full bg-[#0c0c0c] relative overflow-hidden">
+    <footer className="w-full bg-[#002919] relative overflow-hidden border-t border-stone-850 select-none">
 
-      {/* Nigerian flag stripe — top edge */}
+      {/* Flag Stripes Header border */}
       <div className="absolute top-0 left-0 right-0 h-1 flex">
         <div className="flex-1 bg-[#008751]" />
-        <div className="flex-1 bg-white/15" />
+        <div className="flex-1 bg-white/10" />
         <div className="flex-1 bg-[#008751]" />
       </div>
 
-      {/* Subtle adire dot pattern */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" aria-hidden="true">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="footer-adire" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-              <circle cx="16" cy="16" r="1.5" fill="#FFD100" />
-              <rect x="6" y="6" width="20" height="20" fill="none" stroke="#FFD100" strokeWidth="0.5" transform="rotate(45 16 16)" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#footer-adire)" />
-        </svg>
+      {/* Subtle Adire Geometric Overlay */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0">
+        <CulturalPattern opacity={1} />
       </div>
 
-      {/* Green glow orb */}
-      <div className="absolute bottom-0 left-[-10%] w-[40%] h-[60%] rounded-full bg-[#008751]/10 blur-[120px] pointer-events-none" />
+      {/* Giant Typography Background Watermark */}
+      <div 
+        className="absolute bottom-[-15px] left-0 right-0 text-center font-serif font-black tracking-wider uppercase text-[#008751]/[0.08] pointer-events-none select-none overflow-hidden whitespace-nowrap leading-none"
+        style={{ fontSize: "11vw" }}
+      >
+        One Lifelong Journey
+      </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 pt-14 pb-8">
+      {/* Glowing background ambient bubble */}
+      <div className="absolute bottom-[-10%] right-[-5%] w-[45%] h-[60%] rounded-full bg-[#008751]/5 blur-[140px] pointer-events-none" />
 
-        {/* Top: contact + social */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12 pb-10 border-b border-white/[0.07]">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <p className="text-[11px] text-stone-500 uppercase tracking-widest font-semibold">Contact us</p>
-            <div className="flex flex-wrap items-center gap-5">
-              <a href="tel:+918010200666" className="flex items-center gap-2 text-[13px] font-semibold text-stone-300 hover:text-white transition-colors">
-                <Phone className="w-3.5 h-3.5 text-[#008751]" />
-                +91 8010200666
-              </a>
-              <a href="mailto:help@citieye.com" className="flex items-center gap-2 text-[13px] font-semibold text-stone-300 hover:text-white transition-colors">
-                <Mail className="w-3.5 h-3.5 text-[#008751]" />
-                help@citieye.com
-              </a>
-            </div>
-          </div>
-
-          {/* Social */}
-          <div className="flex gap-3">
-            {[
-              { label: "Facebook", char: "f" },
-              { label: "X / Twitter", char: "𝕏" },
-              { label: "LinkedIn", char: "in" },
-            ].map(({ label, char }) => (
-              <a
-                key={label}
-                href="#"
-                aria-label={label}
-                className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-[11px] font-bold text-stone-400 hover:border-[#FFD100]/60 hover:text-[#FFD100] transition-all"
-              >
-                {char}
-              </a>
-            ))}
-          </div>
-        </div>
-
-        {/* Middle: logo + nav + CTA */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12 pb-10 border-b border-white/[0.07]">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 group">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 pt-20 pb-10">
+        
+        {/* Top Section: Logo Block & Column Navigation */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12 pb-16 border-b border-white/[0.06] items-start">
+          
+          {/* Brand Column (spans 2 columns) */}
+          <div className="lg:col-span-2 space-y-6">
+            <Link href="/" className="flex items-center gap-2 group w-fit">
               <Eye className="h-6 w-6 text-[#FFD100] stroke-[2.5]" />
               <span className="text-xl font-serif font-bold tracking-tight text-white group-hover:text-stone-200 transition-colors">
                 CitiEye
               </span>
             </Link>
-
-            <nav className="flex flex-wrap gap-x-6 gap-y-2">
-              {["About", "How It Works", "Privacy Policy", "Contact Us"].map((item) => (
-                <a
-                  key={item}
-                  href="#"
-                  className="text-[11px] font-semibold text-stone-500 uppercase tracking-widest hover:text-[#FFD100] transition-colors"
-                >
-                  {item}
-                </a>
-              ))}
-            </nav>
-          </div>
-
-          <Link
-            href="/auth?mode=signup"
-            className="inline-block px-8 py-3 bg-[#008751] text-white text-[12px] font-bold tracking-widest uppercase rounded-full hover:bg-[#006633] active:scale-95 transition-all"
-          >
-            Register Now
-          </Link>
-        </div>
-
-        {/* Bottom: legal */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <p className="text-[11px] text-stone-600 font-light max-w-md leading-relaxed">
-            A platform for citizen lifecycle management and field operations. All registrations are confidential and processed in accordance with Nigeria's Data Protection Regulation (NDPR).
-          </p>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 text-[11px] text-stone-600 whitespace-nowrap">
-            <p>&copy; {new Date().getFullYear()} CitiEye. All Rights Reserved.</p>
-            <div className="flex gap-4">
-              <a href="#" className="hover:text-stone-300 transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-stone-300 transition-colors">Cookies</a>
+            <p className="text-green-100/70 text-xs font-light leading-relaxed max-w-sm">
+              Making government plans visible, personal, and relevant. A national initiative built to ensure every citizen is planned for and supported at every milestone of life.
+            </p>
+            <div className="pt-2 flex flex-col gap-2.5">
+              <a href="tel:+2348000000000" className="flex items-center gap-2 text-xs font-semibold text-green-200/90 hover:text-white transition-colors">
+                <Phone className="w-3.5 h-3.5 text-[#FFD100]" />
+                +234 (0) 800-CITIEYE
+              </a>
+              <a href="mailto:support@citieye.gov.ng" className="flex items-center gap-2 text-xs font-semibold text-green-200/90 hover:text-white transition-colors">
+                <Mail className="w-3.5 h-3.5 text-[#FFD100]" />
+                support@citieye.gov.ng
+              </a>
             </div>
           </div>
+
+          {/* Structured Link Columns */}
+          {footerLinks.map((col, index) => (
+            <div key={index} className="space-y-4">
+              <h4 className="text-[10px] font-bold text-[#FFD100] uppercase tracking-[2px]">
+                {col.title}
+              </h4>
+              <ul className="space-y-2.5">
+                {col.links.map((link, i) => (
+                  <li key={i}>
+                    <motion.a
+                      href={link.href}
+                      whileHover={{ x: 4, color: "#FFD100" }}
+                      transition={{ type: "tween", duration: 0.2 }}
+                      className="text-green-100/60 text-[11px] font-medium uppercase tracking-wider block hover:text-[#FFD100] transition-colors"
+                    >
+                      {link.label}
+                    </motion.a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+        </div>
+
+        {/* Bottom Section: Status Indicators & Legal Details */}
+        <div className="pt-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          
+          {/* Live Status indicator */}
+          <div className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.07] px-4 py-2.5 rounded-full">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+            </span>
+            <span className="text-[10px] font-mono text-green-200/80 uppercase tracking-widest leading-none">
+              SYSTEM STATUS: NOMINAL · 36 STATES ONLINE
+            </span>
+          </div>
+
+          {/* Legal / Copyright */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-right">
+            <p className="text-[10px] text-green-200/40 font-light">
+              &copy; {new Date().getFullYear()} CitiEye Community Governance. Secure Lifecycle Registry.
+            </p>
+            <div className="flex items-center gap-3 text-[10px] text-green-200/40">
+              <a href="#" className="hover:text-stone-300 transition-colors">Privacy Policy</a>
+              <span>·</span>
+              <a href="#" className="hover:text-stone-300 transition-colors">NDPR Audited</a>
+            </div>
+          </div>
+
         </div>
 
       </div>

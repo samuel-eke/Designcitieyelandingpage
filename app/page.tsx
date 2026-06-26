@@ -1,6 +1,7 @@
 import { Hero } from "@/components/home/Hero";
 import { WhyExists } from "@/components/home/WhyExists";
 import { Services } from "@/components/home/Services";
+import { PersonalizedSpace } from "@/components/home/PersonalizedSpace";
 import { Promise } from "@/components/home/Promise";
 import { LifeStages } from "@/components/home/LifeStages";
 import { StateMap } from "@/components/home/StateMap";
@@ -13,6 +14,7 @@ export default function HomePage() {
       <Hero />
       <WhyExists />
       <Services />
+      <PersonalizedSpace />
       <Promise />
       <LifeStages />
       <StateMap />
