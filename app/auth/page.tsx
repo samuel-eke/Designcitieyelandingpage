@@ -27,7 +27,7 @@ function AuthContent() {
             <Eye className="h-5.5 w-5.5 stroke-[2.5]" />
           </div>
           <span className="text-2xl font-serif font-bold text-stone-900 tracking-tight">
-            CitiEye
+            CitiEye Community Governance
           </span>
         </Link>
       </div>

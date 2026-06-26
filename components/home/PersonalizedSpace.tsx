@@ -74,7 +74,7 @@ export function PersonalizedSpace() {
             A personal space for every Nigerian.
           </h2>
           <p className="text-stone-300 text-lg font-light leading-relaxed">
-            Every registered citizen gains access to a secure, personalized portal designed entirely around your life stage. With CitiEye, government initiatives stop feeling distant and start feeling relevant to you.
+            Every registered citizen gains access to a secure, personalized portal designed entirely around your life stage. With CitiEye Community Governance, government initiatives stop feeling distant and start feeling relevant to you.
           </p>
         </div>
 

@@ -78,7 +78,7 @@ export function Footer() {
             <Link href="/" className="flex items-center gap-2 group w-fit">
               <Eye className="h-6 w-6 text-[#FFD100] stroke-[2.5]" />
               <span className="text-xl font-serif font-bold tracking-tight text-white group-hover:text-stone-200 transition-colors">
-                CitiEye
+                CitiEye Community Governance
               </span>
             </Link>
             <p className="text-green-100/70 text-xs font-light leading-relaxed max-w-sm">

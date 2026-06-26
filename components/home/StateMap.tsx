@@ -119,7 +119,7 @@ export function StateMap() {
           </span>
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <h2 className="text-4xl sm:text-5xl font-serif font-bold text-white leading-[1.15]">
-              CitiEye across<br />
+              CitiEye Community Governance across<br />
               <span className="text-[#008751]">Nigeria.</span>
             </h2>
             {/* Top-line stats */}

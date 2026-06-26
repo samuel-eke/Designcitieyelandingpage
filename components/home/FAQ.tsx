@@ -7,24 +7,24 @@ import { CulturalPattern } from "../ui/CulturalPattern";
 
 const faqs = [
   {
-    q: "What is CitiEye and who is it built for?",
-    a: "CitiEye is a citizen lifecycle management and field operations platform built for Nigerian government agencies — including federal ministries, state welfare boards, and local government authorities. It gives administrators, programme officers, and field staff a unified digital environment to enrol, verify, track, and serve citizens across all life stages.",
+    q: "What is CitiEye Community Governance and who is it built for?",
+    a: "CitiEye Community Governance is a citizen lifecycle management and field operations platform built for Nigerian government agencies — including federal ministries, state welfare boards, and local government authorities. It gives administrators, programme officers, and field staff a unified digital environment to enrol, verify, track, and serve citizens across all life stages.",
   },
   {
-    q: "How does CitiEye handle citizen data privacy and security?",
-    a: "All citizen data is encrypted in transit and at rest, and processed in strict compliance with Nigeria's Data Protection Regulation (NDPR). Access is role-based and fully audited — no officer can access records outside their assigned scope. CitiEye does not sell or share citizen data with any third party.",
+    q: "How does CitiEye Community Governance handle citizen data privacy and security?",
+    a: "All citizen data is encrypted in transit and at rest, and processed in strict compliance with Nigeria's Data Protection Regulation (NDPR). Access is role-based and fully audited — no officer can access records outside their assigned scope. CitiEye Community Governance does not sell or share citizen data with any third party.",
   },
   {
-    q: "Can CitiEye integrate with existing government databases?",
-    a: "Yes. CitiEye is built with government interoperability as a core requirement. It supports integration with NIMC's NIN infrastructure, the IPPIS payroll system, and state-level registries via secure API connectors. Custom integration pathways can be scoped during onboarding.",
+    q: "Can CitiEye Community Governance integrate with existing government databases?",
+    a: "Yes. CitiEye Community Governance is built with government interoperability as a core requirement. It supports integration with NIMC's NIN infrastructure, the IPPIS payroll system, and state-level registries via secure API connectors. Custom integration pathways can be scoped during onboarding.",
   },
   {
-    q: "What devices do field officers need to use CitiEye?",
-    a: "CitiEye's field application runs on Android smartphones and tablets — including low-cost devices widely available to government officers. No specialist hardware is required. The application is offline-first: officers can collect and verify data without internet connectivity and sync automatically when back online.",
+    q: "What devices do field officers need to use CitiEye Community Governance?",
+    a: "CitiEye Community Governance's field application runs on Android smartphones and tablets — including low-cost devices widely available to government officers. No specialist hardware is required. The application is offline-first: officers can collect and verify data without internet connectivity and sync automatically when back online.",
   },
   {
-    q: "Is CitiEye available across all states in Nigeria?",
-    a: "CitiEye is currently in active deployment and agency onboarding across multiple states. National availability is the target, and the platform's architecture is designed to scale to all 36 states and the FCT. Contact our partnerships team to discuss rollout timelines for your agency or state.",
+    q: "Is CitiEye Community Governance available across all states in Nigeria?",
+    a: "CitiEye Community Governance is currently in active deployment and agency onboarding across multiple states. National availability is the target, and the platform's architecture is designed to scale to all 36 states and the FCT. Contact our partnerships team to discuss rollout timelines for your agency or state.",
   },
   {
     q: "How long does onboarding a new agency take?",
@@ -32,11 +32,11 @@ const faqs = [
   },
   {
     q: "What happens if a field officer loses connectivity in the field?",
-    a: "CitiEye's mobile app is designed for offline-first operation. Officers can continue to collect data, complete forms, and conduct verifications without an internet connection. All offline actions are queued and automatically synchronised to the central platform the moment connectivity is restored, with no data loss.",
+    a: "CitiEye Community Governance's mobile app is designed for offline-first operation. Officers can continue to collect data, complete forms, and conduct verifications without an internet connection. All offline actions are queued and automatically synchronised to the central platform the moment connectivity is restored, with no data loss.",
   },
   {
-    q: "How is CitiEye different from other e-government platforms?",
-    a: "Most e-government platforms are designed for citizen-facing self-service — portals where citizens apply for services. CitiEye is built for the operations side: the officers, administrators, and programme managers who deliver those services. It focuses on field data collection, case tracking, programme compliance, and internal accountability — areas that generic platforms consistently underserve.",
+    q: "How is CitiEye Community Governance different from other e-government platforms?",
+    a: "Most e-government platforms are designed for citizen-facing self-service — portals where citizens apply for services. CitiEye Community Governance is built for the operations side: the officers, administrators, and programme managers who deliver those services. It focuses on field data collection, case tracking, programme compliance, and internal accountability — areas that generic platforms consistently underserve.",
   },
 ];
 
@@ -123,7 +123,7 @@ export function FAQ() {
               </span>
             </h2>
             <p className="text-stone-500 text-base font-light leading-relaxed">
-              Everything agencies, administrators, and officers typically ask before adopting CitiEye. Still have questions? Reach our team directly.
+              Everything agencies, administrators, and officers typically ask before adopting CitiEye Community Governance. Still have questions? Reach our team directly.
             </p>
 
             <a

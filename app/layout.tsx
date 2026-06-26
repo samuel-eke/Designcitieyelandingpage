@@ -4,9 +4,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "CitiEye — Citizen Lifecycle Management Platform",
+  title: "CitiEye Community Governance — Citizen Lifecycle Management Platform",
   description:
-    "CitiEye connects Nigerian citizens with welfare programmes, field officers, and government services — helping build a better Nigeria, one profile at a time.",
+    "CitiEye Community Governance connects Nigerian citizens with welfare programmes, field officers, and government services — helping build a better Nigeria, one profile at a time.",
 };
 
 export default function RootLayout({

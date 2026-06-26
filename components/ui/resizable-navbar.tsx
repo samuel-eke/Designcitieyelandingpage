@@ -43,7 +43,7 @@ export function ResizableNavbar() {
                 <Eye className="h-6 w-6 sm:h-7 sm:w-7 stroke-[2.5]" />
               </div>
               <span className="text-xl sm:text-2xl font-serif font-bold tracking-tight text-stone-900 group-hover:text-stone-700 transition-colors">
-                CitiEye
+                CitiEye Community Governance
               </span>
             </Link>
           </div>

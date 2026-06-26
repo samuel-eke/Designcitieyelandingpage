@@ -5,7 +5,7 @@ export function Stories() {
       age: "68 years",
       programme: "Seniors Programme",
       image: "https://images.unsplash.com/photo-1496672254107-b07a26403885?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGRlcmx5JTIwbmlnZXJpYW4lMjB3b21hbiUyMHBvcnRyYWl0fGVufDF8fHx8MTc3ODg0ODgwMnww&ixlib=rb-4.1.0&q=80&w=1080",
-      testimonial: "CitiEye has given me dignity in my golden years. My dedicated officer visits monthly and ensures I receive home care and help with utilities. I no longer worry about being alone."
+      testimonial: "CitiEye Community Governance has given me dignity in my golden years. My dedicated officer visits monthly and ensures I receive home care and help with utilities. I no longer worry about being alone."
     },
     {
       name: "Chinedu",
@@ -19,14 +19,14 @@ export function Stories() {
       age: "28 years",
       programme: "Youth & Families Programme",
       image: "https://images.unsplash.com/photo-1710897872898-3bc4353682ce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcmVnbmFudCUyMG5pZ2VyaWFuJTIwd29tYW4lMjBwb3J0cmFpdHxlbnwxfHx8fDE3Nzg4NDg4MDN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      testimonial: "As an expectant mother, CitiEye connected me with prenatal care and nutritional support. My officer guided me through every step and made sure my baby and I stayed healthy throughout."
+      testimonial: "As an expectant mother, CitiEye Community Governance connected me with prenatal care and nutritional support. My officer guided me through every step and made sure my baby and I stayed healthy throughout."
     },
     {
       name: "Emeka",
       age: "32 years",
       programme: "Adulthood Programme",
       image: "https://images.unsplash.com/photo-1533108344127-a586d2b02479?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwyfHx5b3VuZyUyMG5pZ2VyaWFuJTIwYWR1bHQlMjBwb3J0cmFpdHxlbnwxfHx8fDE3Nzg4NDg4MDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      testimonial: "CitiEye helped me start my own tailoring business. They provided skills training, connected me with mentors, and gave me the confidence to pursue my entrepreneurial dreams."
+      testimonial: "CitiEye Community Governance helped me start my own tailoring business. They provided skills training, connected me with mentors, and gave me the confidence to pursue my entrepreneurial dreams."
     }
   ];
 

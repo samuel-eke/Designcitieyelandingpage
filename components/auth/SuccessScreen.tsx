@@ -45,7 +45,7 @@ export function SuccessScreen({ name, email, citizenCode, cohortName }: Props) {
           Welcome, {name.split(" ")[0]}!
         </h2>
         <p className="text-stone-500 text-sm leading-relaxed">
-          Your CitiEye registration is submitted and under review. We'll send a confirmation to{" "}
+          Your CitiEye Community Governance registration is submitted and under review. We'll send a confirmation to{" "}
           <strong className="text-stone-700">{email}</strong> within 24–48 hours.
         </p>
       </motion.div>

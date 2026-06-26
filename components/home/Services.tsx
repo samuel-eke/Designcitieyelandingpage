@@ -12,7 +12,7 @@ const pillars = [
     tag: "Education & Development",
     title: "Discover your child's genius",
     desc: "Through thoughtful IQ and aptitude assessments, we help identify where every child truly excels — because greatness is never one-size-fits-all. Our early childhood experts work closely with families to cultivate a nurturing environment for your little ones to blossom.",
-    quote: "Every child's potential is a seed — CitiEye helps it grow into greatness.",
+    quote: "Every child's potential is a seed — CitiEye Community Governance helps it grow into greatness.",
     heroImg:
       "https://images.unsplash.com/photo-1536337005238-94b997371b40?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxuaWdlcmlhbiUyMGNoaWxkJTIwbGVhcm5pbmclMjBzdHVkZW50fGVufDF8fHx8MTc3OTExOTAzMXww&ixlib=rb-4.1.0&q=80&w=1080",
     accent: "#2563eb",
@@ -35,8 +35,8 @@ const pillars = [
     number: "03",
     tag: "Economic Empowerment",
     title: "Build a life you're proud of",
-    desc: "Whether your goal is a fulfilling career or building your own enterprise, CitiEye equips you with skills, guidance, and the resources to get there. Our dedicated officers provide 1:1 mentorship and connect you with local opportunities.",
-    quote: "Opportunity doesn't knock — CitiEye builds the door.",
+    desc: "Whether your goal is a fulfilling career or building your own enterprise, CitiEye Community Governance equips you with skills, guidance, and the resources to get there. Our dedicated officers provide 1:1 mentorship and connect you with local opportunities.",
+    quote: "Opportunity doesn't knock — CitiEye Community Governance builds the door.",
     heroImg:
       "https://images.unsplash.com/photo-1723221906960-1c5a5febc9c3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxuaWdlcmlhbiUyMHByb2Zlc3Npb25hbCUyMHdvcmtpbmclMjBjb25maWRlbnR8ZW58MXx8fHwxNzc5MTE5MDM4fDA&ixlib=rb-4.1.0&q=80&w=1080",
     accent: "#d97706",
@@ -143,7 +143,7 @@ export function Services() {
           Every person is unique.
           <br />
           <span className="relative inline-block mt-2">
-            <span className="relative z-10">So is their CitiEye experience.</span>
+            <span className="relative z-10">So is their CitiEye Community Governance experience.</span>
             <div className="absolute -bottom-2 left-0 w-full h-3 bg-yellow-300/60 rounded-full blur-[1px]" />
           </span>
         </motion.h2>
@@ -155,7 +155,7 @@ export function Services() {
           transition={{ delay: 0.2 }}
           viewport={{ once: true }}
         >
-          CitiEye is built around you — not the other way around. Our programmes are tailored to
+          CitiEye Community Governance is built around you — not the other way around. Our programmes are tailored to
           your individual needs, life stage, and aspirations, so support is always relevant,
           timely, and genuinely helpful.
         </motion.p>

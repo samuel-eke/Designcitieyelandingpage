@@ -46,9 +46,9 @@ export function Impact() {
   return (
     <div className="relative w-full bg-white py-24 lg:py-32 overflow-hidden border-t border-stone-100">
       <CulturalPattern opacity={0.02} />
-      
+
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 lg:mb-24">
           <span className="text-[11px] font-bold tracking-[3px] uppercase text-green-700 mb-6 block">
@@ -67,7 +67,7 @@ export function Impact() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
-          
+
           {/* Left Column: Stats Grid */}
           <div className="lg:col-span-5 grid grid-cols-2 gap-x-6 gap-y-12">
             <div className="flex flex-col gap-2">
@@ -77,7 +77,7 @@ export function Impact() {
               <div className="text-xs font-semibold tracking-wider uppercase text-stone-500">Citizens Supported</div>
               <div className="h-[2px] w-8 bg-green-600 mt-2" />
             </div>
-            
+
             <div className="flex flex-col gap-2">
               <div className="text-4xl sm:text-5xl font-serif font-bold text-stone-900">
                 <AnimatedCounter value={36} />
@@ -101,7 +101,7 @@ export function Impact() {
               <div className="text-xs font-semibold tracking-wider uppercase text-stone-500">Satisfaction Rate</div>
               <div className="h-[2px] w-8 bg-green-600 mt-2" />
             </div>
-            
+
             <div className="col-span-2 mt-4 p-6 bg-stone-50 border border-stone-100 rounded-2xl relative overflow-hidden">
               <CulturalPattern opacity={0.04} className="mix-blend-multiply" />
               <div className="relative z-10 flex items-start gap-4">
@@ -120,28 +120,26 @@ export function Impact() {
 
           {/* Right Column: Dynamic Chart */}
           <div className="lg:col-span-7 bg-white p-6 sm:p-8 border border-stone-200 rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] relative">
-            
+
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
               <div>
                 <h3 className="text-xl font-serif font-bold text-stone-900">Platform Growth</h3>
                 <p className="text-sm text-stone-500 font-light mt-1">Cumulative impact over time</p>
               </div>
-              
+
               {/* Custom Tab Switcher */}
               <div className="flex bg-stone-100 p-1 rounded-full">
                 <button
                   onClick={() => setActiveMetric("citizens")}
-                  className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-all ${
-                    activeMetric === "citizens" ? "bg-white text-stone-900 shadow-sm" : "text-stone-500 hover:text-stone-700"
-                  }`}
+                  className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-all ${activeMetric === "citizens" ? "bg-white text-stone-900 shadow-sm" : "text-stone-500 hover:text-stone-700"
+                    }`}
                 >
                   Citizens (Thousands)
                 </button>
                 <button
                   onClick={() => setActiveMetric("funds")}
-                  className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-all ${
-                    activeMetric === "funds" ? "bg-white text-stone-900 shadow-sm" : "text-stone-500 hover:text-stone-700"
-                  }`}
+                  className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-all ${activeMetric === "funds" ? "bg-white text-stone-900 shadow-sm" : "text-stone-500 hover:text-stone-700"
+                    }`}
                 >
                   Funds (Billions ₦)
                 </button>
@@ -156,11 +154,11 @@ export function Impact() {
                 >
                   <defs>
                     <linearGradient id="colorGradient-citizens" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#16a34a" stopOpacity={0.3} />
+                      <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3} />
                       <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorGradient-funds" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#facc15" stopOpacity={0.3} />
+                      <stop offset="5%" stopColor="#facc15" stopOpacity={0.3} />
                       <stop offset="95%" stopColor="#facc15" stopOpacity={0} />
                     </linearGradient>
                   </defs>
@@ -202,12 +200,12 @@ export function Impact() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            
+
             {/* Brush stroke aesthetic addition */}
             <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-green-600/10 rounded-full blur-xl -z-10 pointer-events-none"></div>
             <div className="absolute -top-4 -left-4 w-32 h-32 bg-yellow-400/10 rounded-full blur-xl -z-10 pointer-events-none"></div>
           </div>
-          
+
         </div>
       </div>
     </div>

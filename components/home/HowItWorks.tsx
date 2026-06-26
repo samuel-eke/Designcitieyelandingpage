@@ -25,7 +25,7 @@ export function HowItWorks() {
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-base font-semibold leading-7 text-emerald-700 uppercase tracking-wide">Simple Process</h2>
           <p className="mt-2 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
-            How CitiEye Works for You
+            How CitiEye Community Governance Works for You
           </p>
           <p className="mt-6 text-lg leading-8 text-stone-600">
             Getting the support you need shouldn't be complicated. We've streamlined the registration process to get you matched with government and NGO programs faster.

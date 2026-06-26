@@ -10,14 +10,14 @@ const pillars = [
   {
     title: "The Mother",
     quote: "“A mother should not have to fight for child's right to opportunity.”",
-    body: "CitiEye starts at birth. When a baby is registered, a lifetime of planning begins — mapping out healthcare, vaccination tracking, and early education opportunities so mothers never have to struggle in the dark.",
+    body: "CitiEye Community Governance starts at birth. When a baby is registered, a lifetime of planning begins — mapping out healthcare, vaccination tracking, and early education opportunities so mothers never have to struggle in the dark.",
     image: "/mother.png",
     accent: "#008751",
   },
   {
     title: "The Youth",
     quote: "“A young Nigerian's future should not hang on luck or connections.”",
-    body: "Ambition meets direction. CitiEye connects talented teenagers and graduates directly with digital skills programs, scholarship tracks, and internship placements — bypassing nepotism to reward raw merit.",
+    body: "Ambition meets direction. CitiEye Community Governance connects talented teenagers and graduates directly with digital skills programs, scholarship tracks, and internship placements — bypassing nepotism to reward raw merit.",
     image: "/youu.png",
     accent: "#FFD100",
   },
@@ -32,42 +32,42 @@ const pillars = [
   {
     title: "The Teacher",
     quote: "“Educators deserve tools to nurture future generations.”",
-    body: "CitiEye provides teachers with student progress dashboards, resource allocation, and community mentorship links, empowering them to guide learners effectively.",
+    body: "CitiEye Community Governance provides teachers with student progress dashboards, resource allocation, and community mentorship links, empowering them to guide learners effectively.",
     image: "/teacher.png",
     accent: "#0066FF",
   },
   {
     title: "The Entrepreneur",
     quote: "“Small businesses need visibility and support.”",
-    body: "Through CitiEye, entrepreneurs access micro‑finance, market data, and networking events, fostering sustainable growth across regions.",
+    body: "Through CitiEye Community Governance, entrepreneurs access micro‑finance, market data, and networking events, fostering sustainable growth across regions.",
     image: "/entrepreneur.png",
     accent: "#FF6600",
   },
   {
     title: "The Farmer",
     quote: "“Agriculture thrives with data and resources.”",
-    body: "CitiEye links farmers to weather forecasts, subsidy programs, and supply‑chain partners, ensuring resilient harvests and fair market access.",
+    body: "CitiEye Community Governance links farmers to weather forecasts, subsidy programs, and supply‑chain partners, ensuring resilient harvests and fair market access.",
     image: "/farmer.png",
     accent: "#228B22",
   },
   {
     title: "The Artist",
     quote: "“Creativity flourishes with community backing.”",
-    body: "Artists receive grants, exhibition platforms, and mentorship networks via CitiEye, turning cultural talent into sustainable careers.",
+    body: "Artists receive grants, exhibition platforms, and mentorship networks via CitiEye Community Governance, turning cultural talent into sustainable careers.",
     image: "/artist.png",
     accent: "#C71585",
   },
   {
     title: "The Innovator",
     quote: "“Innovation needs infrastructure and collaboration.”",
-    body: "CitiEye bridges innovators with research hubs, funding streams, and prototype labs, accelerating tech solutions for societal challenges.",
+    body: "CitiEye Community Governance bridges innovators with research hubs, funding streams, and prototype labs, accelerating tech solutions for societal challenges.",
     image: "/innovator.png",
     accent: "#8A2BE2",
   },
   {
     title: "The Community",
     quote: "“Collective strength drives national progress.”",
-    body: "Communities organize civic projects, share resources, and voice needs through CitiEye, fostering inclusive, bottom‑up development.",
+    body: "Communities organize civic projects, share resources, and voice needs through CitiEye Community Governance, fostering inclusive, bottom‑up development.",
     image: "/community.png",
     accent: "#FF1493",
   },
@@ -326,7 +326,7 @@ export function WhyExists() {
           <div>
             <p className="font-semibold text-stone-900 text-[16px]">Built for government. Governed by standards.</p>
             <p className="text-stone-500 mt-0.5 font-light text-[14px]">
-              CitiEye is designed to comply with Nigeria's Data Protection Regulation (NDPR), integrates with NIMC's NIN infrastructure, and meets the governance standards required by federal and state agency procurement.
+              CitiEye Community Governance is designed to comply with Nigeria's Data Protection Regulation (NDPR), integrates with NIMC's NIN infrastructure, and meets the governance standards required by federal and state agency procurement.
             </p>
           </div>
         </motion.div>

@@ -40,7 +40,7 @@ export function Promise() {
 
             <div className="space-y-4 max-w-xl text-stone-700 leading-relaxed font-light text-base">
               <p>
-                You will never feel like a number in a system. With CitiEye, every citizen is paired with a <strong className="font-semibold text-stone-900">dedicated officer</strong> — a consistent, caring presence who walks with you through life's milestones, challenges, and triumphs.
+                You will never feel like a number in a system. With CitiEye Community Governance, every citizen is paired with a <strong className="font-semibold text-stone-900">dedicated officer</strong> — a consistent, caring presence who walks with you through life's milestones, challenges, and triumphs.
               </p>
             </div>
 
@@ -67,7 +67,7 @@ export function Promise() {
               <div className="relative aspect-[3/4] overflow-hidden bg-stone-100">
                 <img
                   src="https://images.unsplash.com/photo-1642929426263-caf1617ced29?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwyfHxibGFjayUyMHdvbWFuJTIwZ292ZXJubWVudCUyMG9mZmljZXIlMjBzbWlsaW5nJTIwdGFibGV0JTIwaW50ZXJ2aWV3JTIwcG9ydHJhaXR8ZW58MXx8fHwxNzgwMzI4MzM5fDA&ixlib=rb-4.1.0&q=80&w=600"
-                  alt="CitiEye dedicated officer on duty"
+                  alt="CitiEye Community Governance dedicated officer on duty"
                   className="w-full h-full object-cover grayscale-[30%] hover:grayscale-0 transition-all duration-500"
                 />
               </div>

@@ -107,10 +107,10 @@ export function CTABanner() {
                   Companion App
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 mb-4 leading-snug">
-                  CitiEye, right in your pocket.
+                  CitiEye Community Governance, right in your pocket.
                 </h3>
                 <p className="text-stone-600 text-sm font-light leading-relaxed mb-8">
-                  Download the CitiEye mobile companion app to track benefits on the go, view offline profile details, and receive prompt notifications.
+                  Download the CitiEye Community Governance mobile companion app to track benefits on the go, view offline profile details, and receive prompt notifications.
                 </p>
 
                 {/* Minimalist Mobile Phone Interface Preview */}
@@ -120,7 +120,7 @@ export function CTABanner() {
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-semibold text-stone-900">CitiEye Mobile App</span>
+                      <span className="text-xs font-semibold text-stone-900">CitiEye Community Governance Mobile App</span>
                       <span className="text-[8px] font-bold bg-[#008751]/15 text-[#008751] px-1.5 py-0.5 rounded">v1.4</span>
                     </div>
                     <p className="text-[10px] text-stone-500 font-light mt-0.5">Compatible with iOS 15+ and Android 9+</p>
