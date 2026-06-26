@@ -8,22 +8,21 @@ import Link from "next/link";
 interface Props {
   name: string;
   email: string;
+  citizenCode?: string;
+  cohortName?: string;
 }
 
-function generateRef(): string {
-  return `CTE-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 9000 + 1000)}`;
-}
-
-export function SuccessScreen({ name, email }: Props) {
-  const [ref] = useState(generateRef);
+export function SuccessScreen({ name, email, citizenCode, cohortName }: Props) {
+  const displayRef = citizenCode || `CTE-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 9000 + 1000)}`;
   const [copied, setCopied] = useState(false);
 
   const copy = () => {
-    navigator.clipboard.writeText(ref).then(() => {
+    navigator.clipboard.writeText(displayRef).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
   };
+
 
   return (
     <div className="flex flex-col items-center text-center px-4 py-8 max-w-md mx-auto">
@@ -58,18 +57,24 @@ export function SuccessScreen({ name, email }: Props) {
         transition={{ delay: 0.5 }}
         className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-5 mb-6"
       >
-        <p className="text-[11px] uppercase font-bold tracking-widest text-stone-400 mb-2">Application Reference</p>
+        {cohortName && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-left">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-green-700 block">Assigned Cohort</span>
+            <span className="text-sm font-semibold text-green-900">{cohortName}</span>
+          </div>
+        )}
+        <p className="text-[11px] uppercase font-bold tracking-widest text-stone-400 mb-2">Citizen Code / Reference</p>
         <div className="flex items-center justify-between gap-3">
-          <code className="text-lg font-mono font-bold text-stone-800 tracking-wider">{ref}</code>
+          <code className="text-base font-mono font-bold text-stone-800 tracking-wider">{displayRef}</code>
           <button
             onClick={copy}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-stone-300 rounded-lg text-xs font-semibold text-stone-600 hover:bg-stone-100 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-stone-300 rounded-lg text-xs font-semibold text-stone-600 hover:bg-stone-100 transition-all cursor-pointer"
           >
             <Copy className="w-3.5 h-3.5" />
             {copied ? "Copied!" : "Copy"}
           </button>
         </div>
-        <p className="text-[11px] text-stone-400 mt-2">Keep this for tracking your application status.</p>
+        <p className="text-[11px] text-stone-400 mt-2">Keep this for tracking your lifecycle program status.</p>
       </motion.div>
 
       {/* What's Next */}
