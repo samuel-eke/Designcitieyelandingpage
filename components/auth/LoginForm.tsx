@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FieldWrapper, Input } from "./FormUI";
 import { Eye, EyeOff, LogIn, ShieldAlert } from "lucide-react";
 import Link from "next/link";
+import axios from "axios";
 
 interface Props {
   onSwitchToSignup: () => void;

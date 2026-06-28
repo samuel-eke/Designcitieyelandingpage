@@ -12,6 +12,7 @@ export interface RegisterFormData {
   gender: string;
   address: string;
   stateOfResidence: string;
+  stateOfOrigin: string;
   dateOfBirth: string;
   desiredSupport: string;
 }
@@ -43,6 +44,7 @@ const initialRegisterData: RegisterFormData = {
   gender: "",
   address: "",
   stateOfResidence: "",
+  stateOfOrigin: "",
   dateOfBirth: "",
   desiredSupport: "",
 };

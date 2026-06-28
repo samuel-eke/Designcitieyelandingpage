@@ -6,6 +6,7 @@ import { FieldWrapper, Input, Select } from "./FormUI";
 import { ShieldCheck, Eye, EyeOff, User, Mail, Phone, Lock, Calendar, FileText, MapPin, Heart } from "lucide-react";
 import { NG_STATES } from "./nigeriaData";
 import { SuccessScreen } from "./SuccessScreen";
+import axios from "axios";
 
 interface Props {
   onSwitchToLogin: () => void;
@@ -22,7 +23,11 @@ const SUPPORT_OPTIONS = [
 ];
 
 export function SignupForm({ onSwitchToLogin }: Props) {
-  const { registerData, setRegisterData, registerCitizen, loading, error, success, successData } = useAuthStore();
+  const { registerData, setRegisterData } = useAuthStore();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [successData, setSuccessData] = useState<any>(null);
   const [errors, setErrors] = useState<Partial<Record<keyof RegisterFormData | "consent" | "general", string>>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [consent, setConsent] = useState(false);
@@ -94,6 +99,11 @@ export function SignupForm({ onSwitchToLogin }: Props) {
       e.stateOfResidence = "State of residence is required";
     }
 
+    // State of Origin
+    if (!registerData.stateOfOrigin) {
+      e.stateOfOrigin = "State of origin is required";
+    }
+
     // Date of Birth
     if (!registerData.dateOfBirth) {
       e.dateOfBirth = "Date of birth is required";
@@ -123,15 +133,40 @@ export function SignupForm({ onSwitchToLogin }: Props) {
     e.preventDefault();
     if (!validate()) return;
 
-    // Sanitize stateOfResidence (e.g., FCT - Abuja to FCT)
+    // Sanitize stateOfResidence and stateOfOrigin (e.g., FCT - Abuja to FCT)
     const sanitizedState = registerData.stateOfResidence === "FCT - Abuja" ? "FCT" : registerData.stateOfResidence;
+    const sanitizedOrigin = registerData.stateOfOrigin === "FCT - Abuja" ? "FCT" : registerData.stateOfOrigin;
 
     const payload = {
       ...registerData,
       stateOfResidence: sanitizedState,
+      stateOfOrigin: sanitizedOrigin,
     };
 
-    await registerCitizen(payload);
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const response = await axios.post("/api/auth/register/citizen", payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log(response.data)
+      setSuccessData(response.data);
+      setSuccess(true);
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      const errMsg =
+        err.response?.data?.message ||
+        (typeof err.response?.data === "string" ? err.response?.data : null) ||
+        err.message ||
+        "An unexpected error occurred during registration. Please check if the server is running.";
+      setError(errMsg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (success && successData) {
@@ -307,12 +342,27 @@ export function SignupForm({ onSwitchToLogin }: Props) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FieldWrapper label="State of Residence" required error={errors.stateOfResidence}>
+            <FieldWrapper label="State of Residence (Where do you live?)" required error={errors.stateOfResidence}>
               <Select
                 value={registerData.stateOfResidence}
                 onChange={(e) => setRegisterData({ stateOfResidence: e.target.value })}
                 placeholder="Select State"
                 error={!!errors.stateOfResidence}
+              >
+                {NG_STATES.map((state) => (
+                  <option key={state} value={state}>
+                    {state}
+                  </option>
+                ))}
+              </Select>
+            </FieldWrapper>
+
+            <FieldWrapper label="State of Origin (Where are you from?)" required error={errors.stateOfOrigin}>
+              <Select
+                value={registerData.stateOfOrigin}
+                onChange={(e) => setRegisterData({ stateOfOrigin: e.target.value })}
+                placeholder="Select State"
+                error={!!errors.stateOfOrigin}
               >
                 {NG_STATES.map((state) => (
                   <option key={state} value={state}>
@@ -350,9 +400,8 @@ export function SignupForm({ onSwitchToLogin }: Props) {
 
         {/* Verification Consent */}
         <div
-          className={`p-4 rounded-2xl border transition-colors ${
-            errors.consent ? "border-red-300 bg-red-50/50" : "border-stone-200 bg-stone-55"
-          }`}
+          className={`p-4 rounded-2xl border transition-colors ${errors.consent ? "border-red-300 bg-red-50/50" : "border-stone-200 bg-stone-55"
+            }`}
         >
           <label className="flex items-start gap-3 cursor-pointer">
             <input
