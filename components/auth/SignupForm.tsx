@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore, RegisterFormData } from "./authStore";
 import { FieldWrapper, Input, Select } from "./FormUI";
 import { ShieldCheck, Eye, EyeOff, User, Mail, Phone, Lock, Calendar, FileText, MapPin, Heart } from "lucide-react";
 import { NG_STATES } from "./nigeriaData";
 import { SuccessScreen } from "./SuccessScreen";
-import axios from "axios";
 
 interface Props {
   onSwitchToLogin: () => void;
@@ -23,14 +22,24 @@ const SUPPORT_OPTIONS = [
 ];
 
 export function SignupForm({ onSwitchToLogin }: Props) {
-  const { registerData, setRegisterData } = useAuthStore();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [successData, setSuccessData] = useState<any>(null);
+  const {
+    registerData,
+    setRegisterData,
+    loading,
+    error,
+    success,
+    successData,
+    registerCitizen,
+    resetRegisterForm,
+  } = useAuthStore();
+  
   const [errors, setErrors] = useState<Partial<Record<keyof RegisterFormData | "consent" | "general", string>>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [consent, setConsent] = useState(false);
+
+  useEffect(() => {
+    resetRegisterForm();
+  }, [resetRegisterForm]);
 
   const validate = (): boolean => {
     const e: Partial<Record<keyof RegisterFormData | "consent", string>> = {};
@@ -78,8 +87,8 @@ export function SignupForm({ onSwitchToLogin }: Props) {
     // NIN (exactly 10 digits)
     if (!registerData.nin.trim()) {
       e.nin = "NIN is required";
-    } else if (!/^[0-9]{10}$/.test(registerData.nin.trim())) {
-      e.nin = "NIN must be exactly 10 digits (e.g. 5874123657)";
+    } else if (!/^[0-9]{11}$/.test(registerData.nin.trim())) {
+      e.nin = "NIN must be exactly 11 digits (e.g. 5874123657)";
     }
 
     // Gender
@@ -143,30 +152,7 @@ export function SignupForm({ onSwitchToLogin }: Props) {
       stateOfOrigin: sanitizedOrigin,
     };
 
-    setLoading(true);
-    setError(null);
-    setSuccess(false);
-
-    try {
-      const response = await axios.post("/api/auth/register/citizen", payload, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      console.log(response.data)
-      setSuccessData(response.data);
-      setSuccess(true);
-    } catch (err: any) {
-      console.error("Registration error:", err);
-      const errMsg =
-        err.response?.data?.message ||
-        (typeof err.response?.data === "string" ? err.response?.data : null) ||
-        err.message ||
-        "An unexpected error occurred during registration. Please check if the server is running.";
-      setError(errMsg);
-    } finally {
-      setLoading(false);
-    }
+    await registerCitizen(payload);
   };
 
   if (success && successData) {
@@ -302,7 +288,7 @@ export function SignupForm({ onSwitchToLogin }: Props) {
             <FieldWrapper label="National Identification Number (NIN)" required error={errors.nin}>
               <Input
                 type="text"
-                maxLength={10}
+                maxLength={11}
                 value={registerData.nin}
                 onChange={(e) => setRegisterData({ nin: e.target.value })}
                 placeholder="5874123657"

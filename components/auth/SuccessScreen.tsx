@@ -106,10 +106,7 @@ export function SuccessScreen({ name, email, citizenCode, cohortName }: Props) {
         transition={{ delay: 0.8 }}
         className="flex flex-col sm:flex-row gap-3 w-full"
       >
-        <button className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-stone-100 text-stone-700 rounded-xl text-sm font-semibold hover:bg-stone-200 transition-all">
-          <Download className="w-4 h-4" />
-          Download Receipt
-        </button>
+
         <Link
           href="/"
           className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-green-700 text-white rounded-xl text-sm font-semibold hover:bg-green-800 transition-all"

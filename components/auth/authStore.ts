@@ -71,7 +71,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ loading: true, error: null, success: false });
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/auth/register/citizen",
+        "/api/auth/register/citizen",
         data,
         {
           headers: {

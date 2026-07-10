@@ -3,10 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Allow SVG and CSV as static assets
   async rewrites() {
+    const serverUrl = process.env.SERVER_URL || "http://localhost:8080";
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:8080/api/:path*",
+        destination: `${serverUrl.trim().replace(/\/$/, "")}/api/:path*`,
       },
     ];
   },
