@@ -4,10 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "motion/react";
 import { Eye } from "lucide-react";
+import { useAuthStore } from "../auth/authStore";
 
 export function ResizableNavbar() {
   const { scrollY } = useScroll();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isAuthenticated, user, logout } = useAuthStore();
 
   // Collapse if scrolled more than 80px
   useMotionValueEvent(scrollY, "change", (latest) => {
@@ -76,26 +78,60 @@ export function ResizableNavbar() {
           {/* Action Buttons */}
           <div className="hidden md:flex items-center gap-3">
             <AnimatePresence mode="popLayout">
-              {/* Secondary CTA - Always visible */}
-              <motion.div layout>
-                <Link
-                  href="/auth?mode=signup"
-                  className="inline-block bg-[#008751] px-6 py-2.5 text-[13px] font-semibold tracking-wide text-white transition-all hover:bg-[#006633] active:scale-95 rounded-full"
-                >
-                  Register Now
-                </Link>
-              </motion.div>
+              {isAuthenticated ? (
+                <div className="flex items-center gap-4 animate-in fade-in duration-300">
+                  <span className="text-sm text-stone-700 font-medium">
+                    Hello, {user?.firstName || "Citizen"}
+                  </span>
+                  <Link
+                    href="/dashboard"
+                    className="inline-block bg-green-700 hover:bg-green-850 px-5 py-2 text-[13px] font-semibold tracking-wide text-white transition-all active:scale-95 rounded-full cursor-pointer"
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={() => {
+                      logout();
+                      window.location.href = "/";
+                    }}
+                    className="inline-block bg-stone-100 hover:bg-stone-200 px-5 py-2 text-[13px] font-semibold tracking-wide text-stone-850 transition-all active:scale-95 rounded-full cursor-pointer"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <motion.div layout>
+                  <Link
+                    href="/auth?mode=signup"
+                    className="inline-block bg-[#008751] px-6 py-2.5 text-[13px] font-semibold tracking-wide text-white transition-all hover:bg-[#006633] active:scale-95 rounded-full"
+                  >
+                    Register Now
+                  </Link>
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
 
           {/* Mobile CTA (Fallback) */}
           <div className="md:hidden flex items-center">
-            <Link
-              href="/auth?mode=signup"
-              className="inline-block bg-black px-5 py-2 text-[12px] font-semibold tracking-wide text-white transition-all hover:bg-stone-800 active:scale-95 rounded-full"
-            >
-              Register
-            </Link>
+            {isAuthenticated ? (
+              <button
+                onClick={() => {
+                  logout();
+                  window.location.href = "/";
+                }}
+                className="inline-block bg-stone-200 px-5 py-2 text-[12px] font-semibold tracking-wide text-stone-900 transition-all hover:bg-stone-300 active:scale-95 rounded-full cursor-pointer"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <Link
+                href="/auth?mode=signup"
+                className="inline-block bg-black px-5 py-2 text-[12px] font-semibold tracking-wide text-white transition-all hover:bg-stone-800 active:scale-95 rounded-full"
+              >
+                Register
+              </Link>
+            )}
           </div>
         </div>
       </div>

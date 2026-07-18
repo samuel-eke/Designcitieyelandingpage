@@ -4,7 +4,7 @@ import { useState } from "react";
 import { FieldWrapper, Input } from "./FormUI";
 import { Eye, EyeOff, LogIn, ShieldAlert } from "lucide-react";
 import Link from "next/link";
-import axios from "axios";
+import { useAuthStore } from "./authStore";
 
 interface Props {
   onSwitchToSignup: () => void;
@@ -26,6 +26,7 @@ export function LoginForm({ onSwitchToSignup }: Props) {
   const [errors, setErrors] = useState<LoginErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const login = useAuthStore((state) => state.login);
 
   const validate = (): boolean => {
     const e: LoginErrors = {};
@@ -41,12 +42,17 @@ export function LoginForm({ onSwitchToSignup }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log(data);
     if (!validate()) return;
     setLoading(true);
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 1500));
+    const success = await login(data.identifier, data.password);
     setLoading(false);
-    setErrors({ general: "Demo mode: Login is not connected to a backend yet." });
+    if (success) {
+      window.location.href = "/dashboard";
+    } else {
+      const errMsg = useAuthStore.getState().error || "Invalid credentials. Please try again.";
+      setErrors({ general: errMsg });
+    }
   };
 
   return (

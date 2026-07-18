@@ -108,10 +108,10 @@ export function SuccessScreen({ name, email, citizenCode, cohortName }: Props) {
       >
 
         <Link
-          href="/"
+          href="/dashboard"
           className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-green-700 text-white rounded-xl text-sm font-semibold hover:bg-green-800 transition-all"
         >
-          Go to Homepage
+          Go to Dashboard
           <ArrowRight className="w-4 h-4" />
         </Link>
       </motion.div>

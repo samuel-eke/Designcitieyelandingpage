@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "CitiEye Community Governance — Citizen Lifecycle Management Platform",
@@ -18,9 +17,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-white font-sans text-stone-900 selection:bg-amber-400 selection:text-stone-900 flex flex-col relative">
-        <Navbar />
-        <main className="flex-1 w-full overflow-clip">{children}</main>
-        <Footer />
+        {children}
+        <Toaster position="top-right" />
         <SpeedInsights />
       </body>
     </html>
