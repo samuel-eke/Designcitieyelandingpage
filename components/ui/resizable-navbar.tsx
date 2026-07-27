@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "motion/react";
-import { Eye } from "lucide-react";
+import { Eye, ChevronDown, User, ShieldCheck, Building2 } from "lucide-react";
 import { useAuthStore } from "../auth/authStore";
 
 export function ResizableNavbar() {
@@ -100,13 +100,74 @@ export function ResizableNavbar() {
                   </button>
                 </div>
               ) : (
-                <motion.div layout>
-                  <Link
-                    href="/auth?mode=signup"
-                    className="inline-block bg-[#008751] px-6 py-2.5 text-[13px] font-semibold tracking-wide text-white transition-all hover:bg-[#006633] active:scale-95 rounded-full"
+                <motion.div layout className="relative group">
+                  <button
+                    className="inline-flex items-center gap-2 bg-[#008751] px-5 py-2.5 text-[13px] font-semibold tracking-wide text-white transition-all hover:bg-[#006633] active:scale-95 rounded-full cursor-pointer shadow-sm"
                   >
-                    Register Now
-                  </Link>
+                    <span>Access Portal</span>
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:rotate-180" />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-stone-200/80 rounded-2xl p-2 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <Link
+                      href="/auth?mode=signup&role=citizen"
+                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-stone-50 transition-colors group/item"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-stone-800 block group-hover/item:text-green-700 transition-colors">
+                          Citizen Registration
+                        </span>
+                        <span className="text-[10px] text-stone-400 block leading-tight">
+                          Register your citizen profile & welfare account
+                        </span>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/auth?mode=signup&role=officer"
+                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-blue-50/50 transition-colors group/item"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 border border-blue-100">
+                        <ShieldCheck className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-stone-800 block group-hover/item:text-blue-700 transition-colors">
+                            Field Officer Portal
+                          </span>
+                          <span className="px-1.5 py-0.2 bg-blue-100 text-blue-700 rounded text-[8px] font-mono font-bold">
+                            NEW
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-stone-400 block leading-tight">
+                          Register & login as an authorized field agent
+                        </span>
+                      </div>
+                    </Link>
+
+                    <div className="my-1 border-t border-stone-100" />
+
+                    <Link
+                      href="/admin"
+                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-stone-50 transition-colors group/item"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-stone-100 text-stone-700 flex items-center justify-center shrink-0 border border-stone-200">
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-stone-800 block group-hover/item:text-stone-900 transition-colors">
+                          Admin Gateway
+                        </span>
+                        <span className="text-[10px] text-stone-400 block leading-tight">
+                          Government agency & super admin login
+                        </span>
+                      </div>
+                    </Link>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

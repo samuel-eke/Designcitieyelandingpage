@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "@/components/ui/sonner";
+import QueryProvider from "@/components/providers/QueryProvider";
 
 export const metadata: Metadata = {
   title: "CitiEye Community Governance — Citizen Lifecycle Management Platform",
@@ -17,7 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-white font-sans text-stone-900 selection:bg-amber-400 selection:text-stone-900 flex flex-col relative">
-        {children}
+        <QueryProvider>
+          {children}
+        </QueryProvider>
         <Toaster position="top-right" />
         <SpeedInsights />
       </body>

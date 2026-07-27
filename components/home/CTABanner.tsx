@@ -2,6 +2,7 @@
 
 import React, { useRef } from "react";
 import { motion, useInView } from "motion/react";
+import Link from "next/link";
 import { Check, Smartphone, ArrowRight, ShieldCheck, Download } from "lucide-react";
 import { CulturalPattern } from "../ui/CulturalPattern";
 
@@ -84,12 +85,15 @@ export function CTABanner() {
 
               {/* Action Button: slides white background left-to-right on hover */}
               <div className="mt-auto pt-4">
-                <button className="relative overflow-hidden bg-stone-950 px-8 py-4 text-[12px] font-bold uppercase tracking-wider text-white border border-stone-900 group/btn transition-colors duration-300 w-full sm:w-auto">
+                <Link
+                  href="/auth?mode=signup"
+                  className="relative overflow-hidden bg-stone-950 px-8 py-4 text-[12px] font-bold uppercase tracking-wider text-white border border-stone-900 group/btn transition-colors duration-300 w-full sm:w-auto inline-block text-center"
+                >
                   <span className="absolute inset-0 bg-white transform -translate-x-full group-hover/btn:translate-x-0 transition-transform duration-300 ease-out origin-left z-0" />
                   <span className="relative z-10 flex items-center justify-center gap-2 group-hover/btn:text-stone-900 transition-colors">
                     Register Profile <ArrowRight className="w-4 h-4" />
                   </span>
-                </button>
+                </Link>
               </div>
             </div>
           </motion.div>

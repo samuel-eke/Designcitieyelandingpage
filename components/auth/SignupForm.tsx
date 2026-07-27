@@ -6,6 +6,7 @@ import { FieldWrapper, Input, Select } from "./FormUI";
 import { ShieldCheck, Eye, EyeOff, User, Mail, Phone, Lock, Calendar, FileText, MapPin, Heart } from "lucide-react";
 import { NG_STATES } from "./nigeriaData";
 import { SuccessScreen } from "./SuccessScreen";
+import { useStatesAndLgas } from "@/lib/hooks/useStatesAndLgas";
 
 interface Props {
   onSwitchToLogin: () => void;
@@ -17,11 +18,12 @@ const SUPPORT_OPTIONS = [
   { value: "business_capital", label: "Business Capital Grant" },
   { value: "investor_funding", label: "Investor Funding & Prototype Lab" },
   { value: "job_opportunity", label: "Job & Internship Opportunity" },
-  { value: "visa_sponsorship", label: "Visa Sponsorship" },
   { value: "skill_acquisition", label: "Digital Skills & Skill Acquisition" },
 ];
 
 export function SignupForm({ onSwitchToLogin }: Props) {
+  const { states, getLgasForState } = useStatesAndLgas();
+
   const {
     registerData,
     setRegisterData,
@@ -32,7 +34,9 @@ export function SignupForm({ onSwitchToLogin }: Props) {
     registerCitizen,
     resetRegisterForm,
   } = useAuthStore();
-  
+
+  const availableLgas = getLgasForState(registerData.stateOfOrigin);
+
   const [errors, setErrors] = useState<Partial<Record<keyof RegisterFormData | "consent" | "general", string>>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [consent, setConsent] = useState(false);
@@ -168,7 +172,19 @@ export function SignupForm({ onSwitchToLogin }: Props) {
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
-      <div className="text-center space-y-1.5">
+      {/* Prominent Top Sign-In Switch Bar */}
+      <div className="bg-green-50/70 border border-green-200/80 p-3.5 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-sm">
+        <span className="text-stone-700 font-semibold">Already registered on CitiEye?</span>
+        <button
+          onClick={onSwitchToLogin}
+          type="button"
+          className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white font-bold rounded-xl transition-all shadow-sm cursor-pointer shrink-0 active:scale-95"
+        >
+          Sign In Here →
+        </button>
+      </div>
+
+      <div className="text-center space-y-1.5 pt-1">
         <h2 className="text-3xl font-serif font-bold text-stone-900 tracking-tight">
           Create citizen profile
         </h2>
@@ -327,15 +343,15 @@ export function SignupForm({ onSwitchToLogin }: Props) {
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FieldWrapper label="State of Residence (Where do you live?)" required error={errors.stateOfResidence}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FieldWrapper label="State of Residence" required error={errors.stateOfResidence}>
               <Select
                 value={registerData.stateOfResidence}
                 onChange={(e) => setRegisterData({ stateOfResidence: e.target.value })}
                 placeholder="Select State"
                 error={!!errors.stateOfResidence}
               >
-                {NG_STATES.map((state) => (
+                {states.map((state) => (
                   <option key={state} value={state}>
                     {state}
                   </option>
@@ -343,14 +359,18 @@ export function SignupForm({ onSwitchToLogin }: Props) {
               </Select>
             </FieldWrapper>
 
-            <FieldWrapper label="State of Origin (Where are you from?)" required error={errors.stateOfOrigin}>
+            <FieldWrapper label="State of Origin" required error={errors.stateOfOrigin}>
               <Select
                 value={registerData.stateOfOrigin}
-                onChange={(e) => setRegisterData({ stateOfOrigin: e.target.value })}
+                onChange={(e) => {
+                  const newState = e.target.value;
+                  const lgas = getLgasForState(newState);
+                  setRegisterData({ stateOfOrigin: newState, lga: lgas[0] || "" });
+                }}
                 placeholder="Select State"
                 error={!!errors.stateOfOrigin}
               >
-                {NG_STATES.map((state) => (
+                {states.map((state) => (
                   <option key={state} value={state}>
                     {state}
                   </option>
@@ -358,6 +378,24 @@ export function SignupForm({ onSwitchToLogin }: Props) {
               </Select>
             </FieldWrapper>
 
+            <FieldWrapper label="Local Govt Area (LGA)" required error={errors.lga}>
+              <Select
+                value={registerData.lga}
+                onChange={(e) => setRegisterData({ lga: e.target.value })}
+                placeholder={registerData.stateOfOrigin ? "Select LGA" : "Select State of Origin First"}
+                error={!!errors.lga}
+                disabled={!registerData.stateOfOrigin}
+              >
+                {availableLgas.map((lgaItem) => (
+                  <option key={lgaItem} value={lgaItem}>
+                    {lgaItem}
+                  </option>
+                ))}
+              </Select>
+            </FieldWrapper>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 mt-4">
             <FieldWrapper label="Desired Support Program" required error={errors.desiredSupport}>
               <Select
                 value={registerData.desiredSupport}

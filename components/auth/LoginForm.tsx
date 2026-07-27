@@ -4,7 +4,7 @@ import { useState } from "react";
 import { FieldWrapper, Input } from "./FormUI";
 import { Eye, EyeOff, LogIn, ShieldAlert } from "lucide-react";
 import Link from "next/link";
-import { useAuthStore } from "./authStore";
+import { useAuthStore, extractUserRole, isAdminRole } from "./authStore";
 
 interface Props {
   onSwitchToSignup: () => void;
@@ -48,7 +48,28 @@ export function LoginForm({ onSwitchToSignup }: Props) {
     const success = await login(data.identifier, data.password);
     setLoading(false);
     if (success) {
-      window.location.href = "/dashboard";
+      const state = useAuthStore.getState();
+      const role = extractUserRole(state.user, state.accessToken);
+      if (isAdminRole(role)) {
+        const host = window.location.host;
+        const protocol = window.location.protocol;
+        if (host.includes("localhost")) {
+          const port = window.location.port ? `:${window.location.port}` : "";
+          if (host.startsWith("admin.")) {
+            window.location.href = "/admin";
+          } else {
+            window.location.href = `${protocol}//admin.localhost${port}/`;
+          }
+        } else {
+          if (!host.startsWith("admin.")) {
+            window.location.href = `${protocol}//admin.${host}/`;
+          } else {
+            window.location.href = "/admin";
+          }
+        }
+      } else {
+        window.location.href = "/dashboard";
+      }
     } else {
       const errMsg = useAuthStore.getState().error || "Invalid credentials. Please try again.";
       setErrors({ general: errMsg });
@@ -57,7 +78,19 @@ export function LoginForm({ onSwitchToSignup }: Props) {
 
   return (
     <div className="w-full max-w-md mx-auto space-y-6">
-      <div className="text-center space-y-1.5">
+      {/* Prominent Top Create Profile Switch Bar */}
+      <div className="bg-green-50/70 border border-green-200/80 p-3.5 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-sm">
+        <span className="text-stone-700 font-semibold">New to CitiEye Registry?</span>
+        <button
+          onClick={onSwitchToSignup}
+          type="button"
+          className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white font-bold rounded-xl transition-all shadow-sm cursor-pointer shrink-0 active:scale-95"
+        >
+          Create Profile →
+        </button>
+      </div>
+
+      <div className="text-center space-y-1.5 pt-1">
         <h2 className="text-3xl font-serif font-bold text-stone-900 tracking-tight">
           Welcome back
         </h2>

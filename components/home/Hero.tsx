@@ -2,6 +2,8 @@
 
 import { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
+import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
 import { CulturalPattern } from "../ui/CulturalPattern";
 
 function Counter({ value, duration = 1.5, delay = 0 }: { value: string; duration?: number; delay?: number }) {
@@ -270,13 +272,25 @@ export function Hero() {
               variants={itemVariants}
               className="mt-10 flex items-center gap-6 flex-wrap"
             >
-              {/* Primary Button: Slides green background left-to-right on hover */}
-              <button className="relative overflow-hidden bg-black px-8 py-4 text-[13px] font-semibold tracking-wide text-white border border-black group transition-colors duration-300">
+              {/* Primary Button */}
+              <Link
+                href="/auth?mode=signup"
+                className="relative overflow-hidden bg-black px-8 py-4 text-[13px] font-semibold tracking-wide text-white border border-black group transition-colors duration-300 inline-block text-center rounded-xl shadow-xs"
+              >
                 <span className="absolute inset-0 bg-[#008751] transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out origin-left z-0" />
                 <span className="relative z-10 block">
                   Register for Free
                 </span>
-              </button>
+              </Link>
+
+              {/* Field Officer Portal Secondary CTA */}
+              <Link
+                href="/auth?mode=signup&role=officer"
+                className="relative overflow-hidden bg-white text-slate-800 border border-slate-200/80 px-6 py-4 text-[13px] font-bold tracking-wide hover:bg-slate-50 hover:border-slate-300 transition-colors inline-flex items-center gap-2 text-center rounded-xl shadow-xs group"
+              >
+                <ShieldCheck className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" />
+                <span>Field Officer Portal</span>
+              </Link>
 
               {/* Secondary CTA: Meets 44px touch target guidelines */}
               <button className="text-[13px] font-semibold text-stone-900 hover:text-[#008751] flex items-center gap-2 group py-3 px-1 transition-colors duration-300">

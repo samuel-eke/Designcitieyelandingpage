@@ -46,8 +46,16 @@ apiClient.interceptors.response.use(
 
     // Detect 401 error and ensure it has not been retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // If the refresh token request itself fails with a 401/400, do not retry
-      if (originalRequest.url === "/api/auth/refresh") {
+      // If the request is for an authentication endpoint, do not attempt to refresh
+      const url = originalRequest.url || "";
+      if (
+        url.includes("/api/auth/refresh") ||
+        url.includes("/api/auth/citizen/login") ||
+        url.includes("/api/auth/register/citizen") ||
+        url.includes("/login") ||
+        url.includes("/register") ||
+        url.includes("/signup")
+      ) {
         return Promise.reject(error);
       }
 

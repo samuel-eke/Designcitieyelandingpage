@@ -9,3 +9,4 @@ dist
 /imports
 /docs
 *.gitignore
+/.vscode
