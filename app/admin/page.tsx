@@ -41,6 +41,7 @@ import {
   useAnalyticsSummary,
   useCitizenRegistry,
   useRefreshAnalytics,
+  usePublishContent,
   CitizenRegistryFilters,
 } from "@/lib/hooks/useAnalytics";
 import { SidebarNav } from "@/components/admin/dashboard/SidebarNav";
@@ -71,6 +72,15 @@ export default function AdminPage() {
   const [email, setEmail] = useState<string>("admin@citieye.gov.ng");
   const [isClient, setIsClient] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
+
+  const isAgencyAdmin = useMemo(() => {
+    const r = role.toUpperCase();
+    return r === "AGENCY_ADMIN" || r === "AGENCYADMIN";
+  }, [role]);
+
+  const adminState = useMemo(() => {
+    return user?.stateOfResidence || user?.data?.stateOfResidence || "";
+  }, [user]);
 
   // Active dashboard tab
   const [activeTab, setActiveTab] = useState<
@@ -127,6 +137,13 @@ export default function AdminPage() {
   // Quick announcement widget form state
   const [announcementTitle, setAnnouncementTitle] = useState("");
   const [announcementContent, setAnnouncementContent] = useState("");
+  const [contentCategory, setContentCategory] = useState("GENERAL");
+  const [pictureUrl, setPictureUrl] = useState("");
+  const [targetCohortId, setTargetCohortId] = useState<string>("");
+  const [targetStateResidence, setTargetStateResidence] = useState("");
+  const [targetStateOrigin, setTargetStateOrigin] = useState("");
+
+  const { mutateAsync: publishContent } = usePublishContent();
   const [announcementSending, setAnnouncementSending] = useState(false);
 
   const { states, getLgasForState } = useStatesAndLgas();
@@ -218,19 +235,39 @@ export default function AdminPage() {
   };
 
   // Quick announcement submission
-  const handlePublishAnnouncement = (e: React.FormEvent) => {
+  const handlePublishAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!announcementTitle.trim() || !announcementContent.trim()) {
       toast.error("Announcement title and body are required.");
       return;
     }
     setAnnouncementSending(true);
-    setTimeout(() => {
+    try {
+      const payload = {
+        title: announcementTitle.trim(),
+        cmsContent: announcementContent.trim(),
+        contentCategory: contentCategory,
+        pictureUrl: pictureUrl.trim() || undefined,
+        targetCohortId: targetCohortId ? Number(targetCohortId) : null,
+        targetStateResidence: isAgencyAdmin ? adminState : (targetStateResidence || null),
+        targetStateOrigin: targetStateOrigin || null,
+      };
+
+      await publishContent(payload);
       toast.success("Broadcast announcement successfully published and pushed to targeted cohorts.");
+      
       setAnnouncementTitle("");
       setAnnouncementContent("");
+      setPictureUrl("");
+      setTargetCohortId("");
+      setTargetStateResidence("");
+      setTargetStateOrigin("");
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || "Failed to publish content.";
+      toast.error(msg);
+    } finally {
       setAnnouncementSending(false);
-    }, 1200);
+    }
   };
 
   // Dynamic greeting based on hour
@@ -548,7 +585,7 @@ export default function AdminPage() {
               Good morning, {email.split("@")[0]} 👋
             </span>
             <h2 className="text-2xl font-serif font-bold text-slate-800 tracking-tight">
-              Command Dashboard
+              Command Dashboard {isAgencyAdmin && adminState ? `(${adminState} State)` : ""}
             </h2>
             <p className="text-xs text-slate-400 font-light mt-0.5">
               Here is what is happening with the citizen registry database today.
@@ -682,10 +719,10 @@ export default function AdminPage() {
                       icon={Megaphone}
                       badgeText="CMS Dispatch"
                       badgeColor="amber"
-                      className="lg:col-span-5 h-[360px]"
+                      className="lg:col-span-5 h-[450px]"
                     >
-                      <form onSubmit={handlePublishAnnouncement} className="space-y-3.5 h-full flex flex-col justify-between">
-                        <div className="space-y-3">
+                      <form onSubmit={handlePublishAnnouncement} className="h-full flex flex-col justify-between overflow-hidden">
+                        <div className="space-y-3.5 overflow-y-auto pr-1 flex-1 py-1">
                           <div className="space-y-1">
                             <label className="text-[9px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
                               Draft Title
@@ -695,9 +732,27 @@ export default function AdminPage() {
                               value={announcementTitle}
                               onChange={(e) => setAnnouncementTitle(e.target.value)}
                               placeholder="e.g. Health Center Outpost Notice"
-                              className="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:border-blue-500 rounded-xl text-xs text-slate-800 placeholder-slate-400 outline-none transition-all"
+                              className="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:border-blue-500 rounded-xl text-xs text-slate-800 placeholder-slate-400 outline-none transition-all font-medium"
                             />
                           </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
+                              Content Category
+                            </label>
+                            <select
+                              value={contentCategory}
+                              onChange={(e) => setContentCategory(e.target.value)}
+                              className="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:border-blue-500 rounded-xl text-xs text-slate-800 outline-none transition-all cursor-pointer font-medium"
+                            >
+                              <option value="GENERAL">General Notice</option>
+                              <option value="HEALTH_NOTICE">Health Notice</option>
+                              <option value="EDUCATION_NOTICE">Education Notice</option>
+                              <option value="COHORT_UPDATE">Cohort Update</option>
+                              <option value="GRANT_OPPORTUNITY">Grant Opportunity</option>
+                            </select>
+                          </div>
+
                           <div className="space-y-1">
                             <label className="text-[9px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
                               Content Body
@@ -706,15 +761,101 @@ export default function AdminPage() {
                               value={announcementContent}
                               onChange={(e) => setAnnouncementContent(e.target.value)}
                               placeholder="Write announcement dispatch payload here..."
-                              rows={4}
+                              rows={3}
                               className="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:border-blue-500 rounded-xl text-xs text-slate-800 placeholder-slate-400 outline-none transition-all resize-none"
                             />
                           </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
+                              Picture URL (Optional)
+                            </label>
+                            <input
+                              type="text"
+                              value={pictureUrl}
+                              onChange={(e) => setPictureUrl(e.target.value)}
+                              placeholder="e.g. https://example.com/image.jpg"
+                              className="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:border-blue-500 rounded-xl text-xs text-slate-800 placeholder-slate-400 outline-none transition-all font-mono"
+                            />
+                          </div>
+
+                          <div className="border-t border-slate-100 pt-3 mt-3">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase font-mono tracking-wider block mb-2 select-none">
+                              Audience Targeting (Optional)
+                            </span>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                              {/* Cohort Targeting */}
+                              <div className="space-y-1">
+                                <label className="text-[9px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
+                                  Target Cohort
+                                </label>
+                                <select
+                                  value={targetCohortId}
+                                  onChange={(e) => setTargetCohortId(e.target.value)}
+                                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200/80 focus:border-blue-500 rounded-xl text-[11px] text-slate-800 outline-none transition-all cursor-pointer font-medium"
+                                >
+                                  <option value="">Broadcast to All Cohorts</option>
+                                  {summary?.byCohort?.map((c) => (
+                                    <option key={c.cohortId} value={c.cohortId}>
+                                      {c.cohortName}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              {/* State of Residence Targeting */}
+                              <div className="space-y-1">
+                                <label className="text-[9px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
+                                  Target State (Res.)
+                                </label>
+                                <select
+                                  value={isAgencyAdmin ? adminState : targetStateResidence}
+                                  onChange={(e) => setTargetStateResidence(e.target.value)}
+                                  disabled={isAgencyAdmin}
+                                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200/80 focus:border-blue-500 rounded-xl text-[11px] text-slate-800 outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 cursor-pointer disabled:cursor-not-allowed font-medium"
+                                >
+                                  {isAgencyAdmin ? (
+                                    <option value={adminState}>{adminState} (Locked)</option>
+                                  ) : (
+                                    <>
+                                      <option value="">Broadcast to All States</option>
+                                      {states.map((st) => (
+                                        <option key={st} value={st}>
+                                          {st}
+                                        </option>
+                                      ))}
+                                    </>
+                                  )}
+                                </select>
+                              </div>
+
+                              {/* State of Origin Targeting */}
+                              <div className="space-y-1 col-span-2">
+                                <label className="text-[9px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
+                                  Target State (Origin)
+                                </label>
+                                <select
+                                  value={targetStateOrigin}
+                                  onChange={(e) => setTargetStateOrigin(e.target.value)}
+                                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200/80 focus:border-blue-500 rounded-xl text-[11px] text-slate-800 outline-none transition-all cursor-pointer font-medium"
+                                >
+                                  <option value="">Broadcast to All Origins</option>
+                                  {states.map((st) => (
+                                    <option key={st} value={st}>
+                                      {st}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          </div>
                         </div>
+
                         <button
                           type="submit"
                           disabled={announcementSending}
-                          className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider active:scale-[0.98] transition-all cursor-pointer outline-none flex items-center justify-center gap-2"
+                          className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider active:scale-[0.98] transition-all cursor-pointer outline-none flex items-center justify-center gap-2 mt-3"
                         >
                           {announcementSending ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -909,7 +1050,20 @@ export default function AdminPage() {
                         <label className="text-[9px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
                           Local Govt Area (LGA)
                         </label>
-                        {filters.stateOfOrigin ? (
+                        {isAgencyAdmin ? (
+                          <select
+                            value={filters.lga}
+                            onChange={(e) => handleFilterChange("lga", e.target.value)}
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:border-blue-500 rounded-xl text-xs text-slate-700 outline-none transition-all cursor-pointer font-medium"
+                          >
+                            <option value="">All LGAs in {adminState}</option>
+                            {getLgasForState(adminState).map((lgaItem) => (
+                              <option key={lgaItem} value={lgaItem}>
+                                {lgaItem}
+                              </option>
+                            ))}
+                          </select>
+                        ) : filters.stateOfOrigin ? (
                           <select
                             value={filters.lga}
                             onChange={(e) => handleFilterChange("lga", e.target.value)}

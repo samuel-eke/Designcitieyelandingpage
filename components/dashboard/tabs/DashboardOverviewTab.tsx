@@ -36,9 +36,9 @@ export function DashboardOverviewTab({
       {/* ─── ZONE 1: Two Summary KPI Stat Cards ───────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <KpiStatCard
-          title="Assigned Cohort"
-          value={cohortName.replace(" Cohort", "")}
-          sublabel={cohortDescription || "Age & Demographic Group"}
+          title="Assigned Life Stage"
+          value={cohortName.replace(" Cohort", "").replace(" Life Stage", "")}
+          sublabel={cohortDescription || "Life Stage & Demographic Group"}
           badgeText="Active Tier"
           badgeType="info"
           icon={Users}
@@ -47,7 +47,7 @@ export function DashboardOverviewTab({
         />
 
         <KpiStatCard
-          title="Support Track"
+          title="Empowerment Program"
           value={supportGroupLabel || "—"}
           sublabel="Selected Welfare Program"
           badgeText="Matched"
@@ -81,7 +81,7 @@ export function DashboardOverviewTab({
               </div>
             </div>
             <p className="text-xs text-stone-500 leading-relaxed">
-              Answer the demographic questions relevant to your age cohort to improve your welfare eligibility score.
+              Answer the demographic questions relevant to your life stage to improve your welfare eligibility score.
             </p>
             <button
               onClick={() => onNavigateTab("profile")}

@@ -25,9 +25,18 @@ export type HealthRecordType =
 
 export interface HealthRecordPayload {
   citizenCode: string;
-  recordType: HealthRecordType;
+  recordType: HealthRecordType | string;
   description: string;
   notes?: string;
+  [key: string]: any; // Allow dynamic questionnaire fields
+}
+
+export interface HealthQuestionDto {
+  fieldName: string;
+  questionText: string;
+  dataType: "BOOLEAN" | "STRING" | "NUMBER" | "JSON";
+  choices?: string[];
+  ndprSensitive: boolean;
 }
 
 export interface HealthRecord {
@@ -55,9 +64,13 @@ export interface EducationQuestionDto {
 
 export interface EducationRecordPayload {
   citizenCode: string;
-  /** Dynamic key-value map — keys match EducationQuestionDto.fieldKey */
-  answers: Record<string, string | number | boolean | null>;
-  educationType?: string;
+  recordType: "ENROLLMENT" | "EXAM_RESULT" | "ATTENDANCE" | string;
+  institutionName: string;
+  academicYear: string; // e.g. "2025/2026"
+  classGrade?: string;
+  attendanceRate?: number;
+  // Index signature to allow flat dynamic questionnaire fields
+  [key: string]: any;
 }
 
 export interface EducationRecord {
@@ -90,6 +103,16 @@ export async function getHealthRecords(
 ): Promise<HealthRecord[]> {
   const response = await apiClient.get<HealthRecord[]>(
     `/api/field-officers/health/records/${encodeURIComponent(citizenCode)}`
+  );
+  return response.data;
+}
+
+/** GET /api/field-officers/health/questions?citizenCode={citizenCode} */
+export async function getHealthQuestions(
+  citizenCode: string
+): Promise<HealthQuestionDto[]> {
+  const response = await apiClient.get<HealthQuestionDto[]>(
+    `/api/field-officers/health/questions?citizenCode=${encodeURIComponent(citizenCode)}`
   );
   return response.data;
 }
@@ -176,6 +199,7 @@ export async function getAllCitizens(
     gender?: string;
     cohortName?: string;
     query?: string;
+    lga?: string;
     page?: number;
     size?: number;
   }
@@ -190,6 +214,7 @@ export async function getAllCitizens(
   if (params?.gender) queryParams.set("gender", params.gender);
   if (params?.cohortName) queryParams.set("cohortName", params.cohortName);
   if (params?.query) queryParams.set("query", params.query);
+  if (params?.lga) queryParams.set("lga", params.lga);
   if (params?.page !== undefined) queryParams.set("page", String(params.page));
   if (params?.size !== undefined) queryParams.set("size", String(params.size));
 

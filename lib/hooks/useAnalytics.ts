@@ -202,3 +202,23 @@ export function useUpdateEducationRecord() {
     },
   });
 }
+
+export interface PublishContentPayload {
+  title: string;
+  cmsContent: string;
+  contentCategory: string;
+  pictureUrl?: string;
+  targetCohortId?: number | null;
+  targetStateResidence?: string | null;
+  targetStateOrigin?: string | null;
+}
+
+export function usePublishContent() {
+  return useMutation<any, Error, PublishContentPayload>({
+    mutationKey: ["publishContent"],
+    mutationFn: async (payload) => {
+      const response = await apiClient.post<any>("/api/admin/content/new", payload);
+      return response.data;
+    },
+  });
+}

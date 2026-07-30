@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Calendar, User2, Tag, ChevronDown, ChevronUp, Megaphone } from "lucide-react";
+import { Calendar, Tag, ChevronDown, ChevronUp, Megaphone } from "lucide-react";
 import type { PostDto, DesiredSupport } from "@/lib/types/citieye";
 
 // ---------------------------------------------------------------------------
@@ -137,12 +137,8 @@ export function AnnouncementCard({ post, isExpanded, onToggleExpand }: Announcem
           )}
         </div>
 
-        {/* Footer: author + date */}
-        <div className="flex items-center justify-between pt-2 border-t border-stone-100">
-          <div className="flex items-center gap-2 text-xs text-stone-500">
-            <User2 className="w-3.5 h-3.5 text-stone-400" />
-            <span className="font-medium">{post.author}</span>
-          </div>
+        {/* Footer: date */}
+        <div className="flex items-center justify-end pt-2 border-t border-stone-100">
           <div className="flex items-center gap-1.5 text-xs text-stone-400">
             <Calendar className="w-3.5 h-3.5" />
             <time dateTime={post.datePublished} title={formatDate(post.datePublished)}>

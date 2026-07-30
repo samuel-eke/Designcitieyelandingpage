@@ -54,12 +54,14 @@ export function OfficerSignupForm({ onSwitchToLogin }: OfficerSignupFormProps) {
     dateOfBirth: "",
     specialty: "medical",
     stateOfResidence: "Lagos",
+    residenceLga: "",
     stateOfOrigin: "Lagos",
     lga: "",
     address: "",
   });
 
   const availableLgas = getLgasForState(formData.stateOfOrigin);
+  const availableResidenceLgas = getLgasForState(formData.stateOfResidence);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -91,7 +93,10 @@ export function OfficerSignupForm({ onSwitchToLogin }: OfficerSignupFormProps) {
       errs.nin = "NIN must be exactly 11 digits";
     }
     if (!formData.dateOfBirth) errs.dateOfBirth = "Date of birth is required";
-    if (!formData.lga.trim()) errs.lga = "LGA is required";
+    if (!formData.stateOfResidence) errs.stateOfResidence = "State of residence is required";
+    if (!formData.residenceLga.trim()) errs.residenceLga = "LGA of residence is required";
+    if (!formData.stateOfOrigin) errs.stateOfOrigin = "State of origin is required";
+    if (!formData.lga.trim()) errs.lga = "LGA of origin is required";
     if (!formData.address.trim()) errs.address = "Station / Address is required";
 
     setErrors(errs);
@@ -383,12 +388,23 @@ export function OfficerSignupForm({ onSwitchToLogin }: OfficerSignupFormProps) {
           3. Station & Location
         </span>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-500 uppercase font-mono">State of Residence *</label>
             <select
               value={formData.stateOfResidence}
-              onChange={(e) => handleChange("stateOfResidence", e.target.value)}
+              onChange={(e) => {
+                const newState = e.target.value;
+                const newLgas = getLgasForState(newState);
+                setFormData((prev) => ({
+                  ...prev,
+                  stateOfResidence: newState,
+                  residenceLga: newLgas[0] || "",
+                }));
+                if (errors.stateOfResidence) {
+                  setErrors((prev) => ({ ...prev, stateOfResidence: "" }));
+                }
+              }}
               className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 transition-all cursor-pointer font-medium"
             >
               <option value="">Select State of Residence</option>
@@ -398,8 +414,29 @@ export function OfficerSignupForm({ onSwitchToLogin }: OfficerSignupFormProps) {
                 </option>
               ))}
             </select>
+            {errors.stateOfResidence && <span className="text-[9px] text-red-500">{errors.stateOfResidence}</span>}
           </div>
 
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-slate-500 uppercase font-mono">LGA of Residence *</label>
+            <select
+              value={formData.residenceLga}
+              onChange={(e) => handleChange("residenceLga", e.target.value)}
+              disabled={!formData.stateOfResidence}
+              className={`w-full px-3 py-2.5 bg-slate-50 border ${errors.residenceLga ? 'border-red-400' : 'border-slate-200'} rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 transition-all cursor-pointer font-medium disabled:opacity-50`}
+            >
+              <option value="">{formData.stateOfResidence ? "Select LGA of Residence" : "Select State of Residence First"}</option>
+              {availableResidenceLgas.map((lgaItem) => (
+                <option key={lgaItem} value={lgaItem}>
+                  {lgaItem}
+                </option>
+              ))}
+            </select>
+            {errors.residenceLga && <span className="text-[9px] text-red-500">{errors.residenceLga}</span>}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-500 uppercase font-mono">State of Origin *</label>
             <select
@@ -412,6 +449,9 @@ export function OfficerSignupForm({ onSwitchToLogin }: OfficerSignupFormProps) {
                   stateOfOrigin: newState,
                   lga: newLgas[0] || "",
                 }));
+                if (errors.stateOfOrigin) {
+                  setErrors((prev) => ({ ...prev, stateOfOrigin: "" }));
+                }
               }}
               className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 transition-all cursor-pointer font-medium"
             >
@@ -422,10 +462,11 @@ export function OfficerSignupForm({ onSwitchToLogin }: OfficerSignupFormProps) {
                 </option>
               ))}
             </select>
+            {errors.stateOfOrigin && <span className="text-[9px] text-red-500">{errors.stateOfOrigin}</span>}
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-500 uppercase font-mono">Local Govt Area (LGA) *</label>
+            <label className="text-[10px] font-bold text-slate-500 uppercase font-mono">LGA of Origin *</label>
             <select
               value={formData.lga}
               onChange={(e) => handleChange("lga", e.target.value)}

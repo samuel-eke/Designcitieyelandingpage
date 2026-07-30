@@ -182,39 +182,22 @@ function QuestionCard({
   onChange: (fieldName: string, val: any) => void;
   touched: boolean;
 }) {
-  const meta = getCategoryMeta(question.category);
-  const isUnanswered = touched && (value === undefined || value === null || value === "");
+  const isUnanswered = false;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-      className={`bg-white border rounded-2xl p-5 space-y-3.5 transition-colors ${
-        isUnanswered ? "border-red-300" : "border-stone-200/80"
-      }`}
+      className="bg-white border rounded-2xl p-5 space-y-3.5 transition-colors border-stone-200/80"
     >
-      {/* Category badge + PII warning */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <span
-          className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${meta.bg} ${meta.color} ${meta.border}`}
-        >
-          {meta.label}
-        </span>
-        {question.piiSensitive && (
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
-            <Lock className="w-2.5 h-2.5" />
-            PII — Handle with care
-          </span>
-        )}
-      </div>
-
       {/* Label */}
       <label
         htmlFor={question.fieldName}
         className="block text-sm font-semibold text-stone-800 leading-snug"
       >
-        {question.label}
+        {question.label}{" "}
+        <span className="text-stone-400 font-normal text-xs">(Optional)</span>
         {question.piiSensitive && (
           <span className="ml-1.5 text-amber-600 text-xs font-normal">
             (encrypted at rest)
@@ -226,14 +209,6 @@ function QuestionCard({
       <div id={question.fieldName}>
         <FieldInput question={question} value={value} onChange={onChange} />
       </div>
-
-      {/* Inline validation */}
-      {isUnanswered && (
-        <p className="flex items-center gap-1 text-xs text-red-600" role="alert">
-          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-          This field is required to continue
-        </p>
-      )}
     </motion.div>
   );
 }
@@ -325,19 +300,13 @@ export function ProfileTab({
   };
 
   const validateCurrentCategory = () => {
-    for (const q of questionsForCategory) {
-      const val = responses[q.fieldName];
-      if (val === undefined || val === null || val === "") return false;
-    }
+    // All fields are optional
     return true;
   };
 
   const handleNext = () => {
     setTouched(true);
-    if (!validateCurrentCategory()) {
-      toast.error("Please answer all questions before proceeding.");
-      return;
-    }
+    // No validation required as fields are optional
     setTouched(false);
     setCurrentCategoryIndex((i) => i + 1);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -351,18 +320,11 @@ export function ProfileTab({
 
   const handleSubmit = async () => {
     setTouched(true);
-    // Validate all questions
-    for (const q of pendingQuestions) {
-      const val = responses[q.fieldName];
-      if (val === undefined || val === null || val === "") {
-        toast.error(`Please answer: "${q.label}"`);
-        return;
-      }
-    }
+    // All fields are optional, so we do not block submission on empty answers
 
     setSubmitting(true);
     try {
-      await apiClient.post("/api/profile/progressive-update", { responses });
+      await apiClient.post("/api/profile/progressive-update", responses);
       setSubmitted(true);
       toast.success("Profile data submitted successfully!");
     } catch (err: any) {
@@ -450,7 +412,7 @@ export function ProfileTab({
             </div>
             <h4 className="text-sm font-bold text-stone-900">Profile Complete</h4>
             <p className="text-xs text-stone-500 max-w-xs">
-              All supplementary data has been collected. No pending questions remain for your current age cohort.
+              All supplementary data has been collected. No pending questions remain for your current life stage.
             </p>
           </div>
         )}

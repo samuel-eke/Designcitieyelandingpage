@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   ShieldCheck,
@@ -26,6 +26,7 @@ import { HealthOfficerForm } from "@/components/officer/forms/HealthOfficerForm"
 import { EducationOfficerForm } from "@/components/officer/forms/EducationOfficerForm";
 import { getHealthRecords, HealthRecord, getAllCitizens, lookupCitizenByCode } from "@/lib/services/officerService";
 import type { CitizenProfileAnalyticsDto } from "@/lib/types/citieye";
+import { useStatesAndLgas } from "@/lib/hooks/useStatesAndLgas";
 
 // ---------------------------------------------------------------------------
 // Role → specialty config map
@@ -151,15 +152,32 @@ export default function OfficerPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
-  const fetchCitizensList = async (q: string, p: number) => {
+  const { getLgasForState } = useStatesAndLgas();
+  const [selectedLga, setSelectedLga] = useState("");
+
+  const officerState = user?.stateOfResidence || user?.data?.stateOfResidence || "";
+  const availableLgas = useMemo(() => {
+    return officerState ? getLgasForState(officerState) : [];
+  }, [officerState, getLgasForState]);
+
+  const fetchCitizensList = async (q: string, p: number, lgaVal?: string) => {
     setLoadingList(true);
     try {
-      const data = await getAllCitizens({ query: q, page: p, size: 5 });
+      const currentLga = lgaVal !== undefined ? lgaVal : selectedLga;
+      const data = await getAllCitizens({ query: q, page: p, size: 5, lga: currentLga });
+      console.log("[Field Officer Dashboard] Received citizens directory list payload:", {
+        query: q,
+        page: p,
+        totalElements: data.totalElements,
+        totalPages: data.totalPages,
+        citizensCount: data.content?.length,
+        citizens: data.content
+      });
       setCitizensList(data.content || []);
       setTotalPages(data.totalPages || 0);
       setTotalElements(data.totalElements || 0);
     } catch (err) {
-      console.error(err);
+      console.error("[Field Officer Dashboard] Error fetching citizens directory list:", err);
       toast.error("Failed to load registered citizens list.");
     } finally {
       setLoadingList(false);
@@ -168,24 +186,26 @@ export default function OfficerPage() {
 
   useEffect(() => {
     if (user || accessToken) {
-      fetchCitizensList(listQuery, listPage);
+      fetchCitizensList(listQuery, listPage, selectedLga);
     }
   }, [user, accessToken, listPage]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setListPage(0);
-    fetchCitizensList(listQuery, 0);
+    fetchCitizensList(listQuery, 0, selectedLga);
   };
 
   const handleSelectCitizen = async (citizenCode: string) => {
     setLoadingRecords(true);
     try {
       const citizen = await lookupCitizenByCode(citizenCode);
+      console.log("[Field Officer Dashboard] Received looked up citizen detail payload:", citizen);
       setFoundCitizen(citizen);
       toast.success(`Loaded profile for ${citizen.firstName} ${citizen.lastName}`);
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || "Failed to load citizen profile.";
+      console.error(`[Field Officer Dashboard] Error fetching citizen profile for ${citizenCode}:`, err);
       toast.error(msg);
     } finally {
       setLoadingRecords(false);
@@ -224,8 +244,18 @@ export default function OfficerPage() {
     if (specialty === "health") {
       setLoadingRecords(true);
       getHealthRecords(foundCitizen.citizenCode)
-        .then(setHealthRecords)
-        .catch(() => setHealthRecords([]))
+        .then((records) => {
+          console.log("[Field Officer Dashboard] Received citizen health records list payload:", {
+            citizenCode: foundCitizen.citizenCode,
+            recordsCount: records?.length,
+            records: records
+          });
+          setHealthRecords(records);
+        })
+        .catch((err) => {
+          console.error(`[Field Officer Dashboard] Error fetching health records for ${foundCitizen.citizenCode}:`, err);
+          setHealthRecords([]);
+        })
         .finally(() => setLoadingRecords(false));
     }
   }, [foundCitizen, specialty]);
@@ -323,24 +353,51 @@ export default function OfficerPage() {
                 </span>
               </div>
 
-              {/* Search Bar */}
-              <form onSubmit={handleSearchSubmit} className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                  <input
-                    type="text"
-                    value={listQuery}
-                    onChange={(e) => setListQuery(e.target.value)}
-                    placeholder="Search by name or code..."
-                    className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all placeholder-slate-400"
-                  />
+              {/* Search Bar & LGA filter */}
+              <form onSubmit={handleSearchSubmit} className="space-y-2.5">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                    <input
+                      type="text"
+                      value={listQuery}
+                      onChange={(e) => setListQuery(e.target.value)}
+                      placeholder="Search by name or code..."
+                      className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all placeholder-slate-400"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center gap-1"
+                  >
+                    Search
+                  </button>
                 </div>
-                <button
-                  type="submit"
-                  className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center gap-1"
-                >
-                  Search
-                </button>
+
+                {availableLgas.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider shrink-0 select-none">
+                      LGA Filter ({officerState}):
+                    </span>
+                    <select
+                      value={selectedLga}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setSelectedLga(val);
+                        setListPage(0);
+                        fetchCitizensList(listQuery, 0, val);
+                      }}
+                      className="flex-1 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-700 outline-none focus:border-blue-500 transition-all cursor-pointer font-medium"
+                    >
+                      <option value="">All LGAs</option>
+                      {availableLgas.map((lgaName) => (
+                        <option key={lgaName} value={lgaName}>
+                          {lgaName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </form>
 
               {/* Citizens List */}

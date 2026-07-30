@@ -31,7 +31,7 @@ export function MilestoneTracker({
               Mandatory Milestone Tracker
             </h3>
             <p className="text-xs text-stone-500">
-              Civic engagement verification and cohort progression milestones
+              Civic engagement verification and life stage progression milestones
             </p>
           </div>
         </div>

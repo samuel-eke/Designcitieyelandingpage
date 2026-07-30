@@ -29,7 +29,7 @@ const stagesData = [
     idNumber: "NIN-Y9843-EN",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150",
     benefits: [
-      { title: "National Digital Skills Track", status: "72% Complete", desc: "Enrolled in Advanced Software Engineering & Data Architecture.", meta: "Class: Cohort 9" },
+      { title: "National Digital Skills Empowerment Program", status: "72% Complete", desc: "Enrolled in Advanced Software Engineering & Data Architecture.", meta: "Class: Life Stage 9" },
       { title: "Graduate Internship Scheme", status: "3 Matches", desc: "Verified corporate internships matching aptitude profiles.", meta: "Interviews pending" },
       { title: "Aptitude & Talent Assessment", status: "Completed", desc: "Identified high aptitude for logic structures and system design.", meta: "Aptitude Score: 94%" },
     ]
@@ -92,7 +92,7 @@ export function PersonalizedSpace() {
                 {[
                   { title: "View Opportunities", desc: "Access verified programmes, resources, and career pathways relevant to you." },
                   { title: "Track Benefits", desc: "Monitor grant statuses, care schedules, and direct deposits transparently." },
-                  { title: "Personalised Tickers", desc: "Receive live reminders and local clinic or cohort announcements automatically." },
+                  { title: "Personalised Tickers", desc: "Receive live reminders and local clinic or life stage announcements automatically." },
                   { title: "Lifetime Support", desc: "Your portal transitions with you as you step into new stages of life." }
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-start gap-4">

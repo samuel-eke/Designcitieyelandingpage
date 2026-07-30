@@ -10,6 +10,8 @@ export interface Opportunity {
   docs: string;
   officerNotes: string;
   actionLabel: string;
+  assignedOfficerName?: string;
+  applicationStatus?: string;
 }
 
 export interface ChatMessage {

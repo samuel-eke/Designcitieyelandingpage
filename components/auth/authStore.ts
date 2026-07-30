@@ -3,19 +3,20 @@ import { apiClient } from "@/lib/api";
 
 export interface RegisterFormData {
   firstName: string;
-  middleName: string;
+  middleName?: string;
   lastName: string;
-  email: string;
+  email?: string;
   phoneNumber: string;
   password: string;
-  nin: string;
+  nin?: string;
   gender: string;
   address: string;
   stateOfResidence: string;
+  residenceLga: string;
   stateOfOrigin: string;
   lga: string;
   dateOfBirth: string;
-  desiredSupport: string;
+  parentNin?: string;
 }
 
 export interface OfficerRegisterFormData {
@@ -27,6 +28,7 @@ export interface OfficerRegisterFormData {
   password: string;
   nin: string;
   lga: string;
+  residenceLga: string;
   gender: string;
   address: string;
   stateOfResidence: string;
@@ -128,10 +130,11 @@ const initialRegisterData: RegisterFormData = {
   gender: "",
   address: "",
   stateOfResidence: "",
+  residenceLga: "",
   stateOfOrigin: "",
   lga: "",
   dateOfBirth: "",
-  desiredSupport: "",
+  parentNin: "",
 };
 
 export const useAuthStore = create<AuthState>((set) => ({

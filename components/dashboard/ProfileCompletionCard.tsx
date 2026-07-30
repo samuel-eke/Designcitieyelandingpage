@@ -14,10 +14,10 @@ export function ProfileCompletionCard({
 }: ProfileCompletionCardProps) {
   // Calculate completion percentage based on filled fields
   const fields = [
-    { key: "bio", label: "Bio / Personal Statement", filled: !!profileData.bio },
-    { key: "ninVerified", label: "NIN Verification", filled: profileData.ninVerified },
-    { key: "educationalLevel", label: "Education Level", filled: !!profileData.educationalLevel },
-    { key: "occupation", label: "Employment / Occupation", filled: !!profileData.occupation },
+    { key: "bio", label: "Bio / Personal Statement (Optional)", filled: !!profileData.bio },
+    { key: "ninVerified", label: "NIN Verification (Optional)", filled: profileData.ninVerified },
+    { key: "educationalLevel", label: "Education Level (Optional)", filled: !!profileData.educationalLevel },
+    { key: "occupation", label: "Employment / Occupation (Optional)", filled: !!profileData.occupation },
   ];
 
   const completedCount = fields.filter((f) => f.filled).length;
@@ -64,8 +64,8 @@ export function ProfileCompletionCard({
                 <CheckCircle2 className="w-3.5 h-3.5" /> Verified
               </span>
             ) : (
-              <span className="flex items-center gap-1 text-amber-600 font-semibold text-[11px]">
-                <AlertCircle className="w-3.5 h-3.5" /> Pending
+              <span className="flex items-center gap-1 text-stone-500 font-semibold text-[11px]">
+                <AlertCircle className="w-3.5 h-3.5 text-stone-400" /> Optional
               </span>
             )}
           </div>

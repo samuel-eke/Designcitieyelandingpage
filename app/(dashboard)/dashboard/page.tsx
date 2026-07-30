@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useAuthStore } from "@/components/auth/authStore";
+import { apiClient } from "@/lib/api";
 import { motion, AnimatePresence } from "motion/react";
 import { Award, User, FileText, Megaphone, LayoutDashboard } from "lucide-react";
 import { toast } from "sonner";
 
-import { SidebarItem, ChatMessage } from "@/components/dashboard/types";
+import { SidebarItem, ChatMessage, Opportunity } from "@/components/dashboard/types";
 import {
   COHORTS,
   OPPORTUNITIES_DATA,
@@ -56,7 +57,7 @@ export default function DashboardPage() {
             const parts = [parsed.firstName, parsed.middleName, parsed.lastName].filter(Boolean);
             return parts.join(" ");
           }
-        } catch (e) {}
+        } catch (e) { }
       }
     }
     return user?.email ? user.email.split("@")[0] : "";
@@ -79,7 +80,7 @@ export default function DashboardPage() {
         try {
           const parsed = JSON.parse(stored);
           if (parsed?.citizenCode) return parsed.citizenCode;
-        } catch (e) {}
+        } catch (e) { }
       }
     }
     return "";
@@ -127,22 +128,63 @@ export default function DashboardPage() {
   };
 
   // ── Opportunities State ───────────────────────────────────────────────────
-  const matchingOpportunities = useMemo(() => {
-    if (
-      desiredSupportCode &&
-      OPPORTUNITIES_DATA[desiredSupportCode as keyof typeof OPPORTUNITIES_DATA]
-    ) {
-      return OPPORTUNITIES_DATA[desiredSupportCode as keyof typeof OPPORTUNITIES_DATA];
-    }
-    return DEFAULT_OPPORTUNITIES;
-  }, [desiredSupportCode]);
-
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [loadingOpportunities, setLoadingOpportunities] = useState<boolean>(true);
   const [expandedOpportunityId, setExpandedOpportunityId] = useState<string | null>(null);
   const [appliedOpportunities, setAppliedOpportunities] = useState<Record<string, boolean>>({});
 
-  const handleApply = (id: string, title: string) => {
-    setAppliedOpportunities((prev) => ({ ...prev, [id]: true }));
-    toast.success(`Application for "${title}" submitted!`);
+  useEffect(() => {
+    if (citizenCode) {
+      setLoadingOpportunities(true);
+      apiClient.get<any[]>("/api/citizen/opportunities")
+        .then((res) => {
+          const mapped: Opportunity[] = res.data.map((opt) => ({
+            id: opt.id,
+            title: opt.title,
+            type: opt.type,
+            status: opt.status,
+            brief: opt.brief,
+            full: opt.fullDescription,
+            docs: opt.requiredDocuments ? opt.requiredDocuments.join(", ") : "",
+            officerNotes: opt.officerNotes || "",
+            assignedOfficerName: opt.assignedOfficerName || "",
+            applicationStatus: opt.applicationStatus,
+            actionLabel: opt.actionLabel,
+          }));
+          setOpportunities(mapped);
+
+          const applied: Record<string, boolean> = {};
+          res.data.forEach((opt) => {
+            if (opt.applicationStatus !== "NOT_APPLIED") {
+              applied[opt.id] = true;
+            }
+          });
+          setAppliedOpportunities(applied);
+        })
+        .catch((err) => {
+          console.error("Failed to load opportunities", err);
+          toast.error("Failed to load matched opportunities from registry.");
+        })
+        .finally(() => {
+          setLoadingOpportunities(false);
+        });
+    }
+  }, [citizenCode]);
+
+  const handleApply = async (id: string, title: string) => {
+    try {
+      await apiClient.post(`/api/citizen/opportunities/${id}/apply`);
+      setAppliedOpportunities((prev) => ({ ...prev, [id]: true }));
+      setOpportunities((prev) =>
+        prev.map((opt) =>
+          opt.id === id ? { ...opt, applicationStatus: "SUBMITTED" } : opt
+        )
+      );
+      toast.success(`Application for "${title}" submitted successfully!`);
+    } catch (err: any) {
+      const errMsg = err.response?.data?.error || "Failed to submit application.";
+      toast.error(errMsg);
+    }
   };
 
   // ── Complaints State ──────────────────────────────────────────────────────
@@ -230,7 +272,7 @@ export default function DashboardPage() {
         textLower.includes("tuition") ||
         textLower.includes("study")
       ) {
-        replyText = `For the Scholarship programs, please complete your profile data in the 'Complete Profile' tab. I'm verifying local university admission letters today.`;
+        replyText = `For the Scholarship programs, please complete your profile data in the 'Profile' tab. I'm verifying local university admission letters today.`;
       } else if (
         textLower.includes("complaint") ||
         textLower.includes("waste") ||
@@ -255,8 +297,8 @@ export default function DashboardPage() {
   const sidebarItems: SidebarItem[] = [
     { id: "overview", label: "Dashboard Overview", icon: LayoutDashboard },
     { id: "announcements", label: "Announcements Feed", icon: Megaphone },
-    { id: "opportunities", label: "View Opportunities", icon: Award },
-    { id: "profile", label: "Complete Profile", icon: User },
+    { id: "opportunities", label: "View Initiatives", icon: Award },
+    { id: "profile", label: "Profile", icon: User },
     { id: "complaints", label: "Lodge Complaint", icon: FileText, badge: complaints.length },
   ];
 
@@ -305,7 +347,7 @@ export default function DashboardPage() {
                   cohortName={cohortName}
                   cohortDescription={cohortDescription}
                   desiredSupportCode={desiredSupportCode}
-                  matchingOpportunities={matchingOpportunities}
+                  matchingOpportunities={opportunities}
                   appliedOpportunities={appliedOpportunities}
                   onApply={handleApply}
                   onNavigateTab={setActiveTab}
@@ -320,7 +362,7 @@ export default function DashboardPage() {
                   totalKpisCount={0}
                   kpiPercentage={0}
                   desiredSupportCode={desiredSupportCode}
-                  matchingOpportunities={matchingOpportunities}
+                  matchingOpportunities={opportunities}
                   expandedOpportunityId={expandedOpportunityId}
                   setExpandedOpportunityId={setExpandedOpportunityId}
                   appliedOpportunities={appliedOpportunities}

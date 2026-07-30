@@ -59,7 +59,7 @@ export function SuccessScreen({ name, email, citizenCode, cohortName }: Props) {
       >
         {cohortName && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-left">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-green-700 block">Assigned Cohort</span>
+            <span className="text-[10px] uppercase font-bold tracking-widest text-green-700 block">Assigned Life Stage</span>
             <span className="text-sm font-semibold text-green-900">{cohortName}</span>
           </div>
         )}

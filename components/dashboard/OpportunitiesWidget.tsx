@@ -33,7 +33,7 @@ export function OpportunitiesWidget({
               Matched Opportunities
             </h3>
             <p className="text-[11px] text-stone-500 capitalize">
-              Track: {desiredSupportCode.replace(/_/g, " ")}
+              Empowerment Program: {desiredSupportCode.replace(/_/g, " ")}
             </p>
           </div>
         </div>
@@ -82,7 +82,14 @@ export function OpportunitiesWidget({
                 >
                   {isApplied ? (
                     <>
-                      <CheckCircle2 className="w-3 h-3" /> Submitted
+                      <CheckCircle2 className="w-3 h-3" />{" "}
+                      {op.applicationStatus === "UNDER_REVIEW"
+                        ? "Under Review"
+                        : op.applicationStatus === "APPROVED"
+                        ? "Approved"
+                        : op.applicationStatus === "REJECTED"
+                        ? "Rejected"
+                        : "Submitted"}
                     </>
                   ) : (
                     <>

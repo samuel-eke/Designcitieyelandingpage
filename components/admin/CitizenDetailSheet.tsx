@@ -61,7 +61,7 @@ export function CitizenDetailSheet({
   const userPermissions = user?.permissions || user?.data?.permissions || [];
 
   const canEditProfile = userRole === "super_admin" || userPermissions.includes("EDIT_CITIZEN_PROFILE");
-  
+
   // Profile edit states
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState<Record<string, any>>({});
@@ -229,9 +229,8 @@ export function CitizenDetailSheet({
           )
         ) : (
           <span
-            className={`text-xs ${
-              isEmpty ? "text-slate-400 italic font-mono" : "text-slate-700 font-semibold"
-            }`}
+            className={`text-xs ${isEmpty ? "text-slate-400 italic font-mono" : "text-slate-700 font-semibold"
+              }`}
           >
             {displayValue}
           </span>
@@ -355,14 +354,12 @@ export function CitizenDetailSheet({
               <span className="text-xs text-slate-700 font-semibold">Show unanswered profile fields</span>
               <button
                 onClick={() => setShowEmpty(!showEmpty)}
-                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                  showEmpty ? "bg-blue-600" : "bg-slate-200"
-                }`}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${showEmpty ? "bg-blue-600" : "bg-slate-200"
+                  }`}
               >
                 <span
-                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                    showEmpty ? "translate-x-4" : "translate-x-0"
-                  }`}
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${showEmpty ? "translate-x-4" : "translate-x-0"
+                    }`}
                 />
               </button>
             </div>
@@ -425,8 +422,9 @@ export function CitizenDetailSheet({
 
                   <SectionCard title="Demographics & Household">
                     <DataField label="State of Origin" fieldName="stateOfOrigin" value={profile.stateOfOrigin} />
+                    <DataField label="LGA of Origin" fieldName="lga" value={profile.lga} />
                     <DataField label="State of Residence" fieldName="stateOfResidence" value={profile.stateOfResidence} />
-                    <DataField label="Local Govt Area (LGA)" fieldName="lga" value={profile.lga} />
+                    <DataField label="LGA of Residence" fieldName="residenceLga" value={profile.residenceLga} />
                     <DataField label="Residential Address" fieldName="address" value={profile.address} />
                     <DataField label="Hometown" fieldName="hometown" value={profile.hometown} />
                     <DataField label="Household Size" fieldName="householdSize" value={profile.householdSize} />
@@ -828,3 +826,4 @@ export function CitizenDetailSheet({
     </Sheet>
   );
 }
+

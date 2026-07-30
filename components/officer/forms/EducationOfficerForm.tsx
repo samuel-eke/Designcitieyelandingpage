@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -18,6 +18,7 @@ import {
   getEducationRecords,
   EducationQuestionDto,
   EducationRecord,
+  EducationRecordPayload,
 } from "@/lib/services/officerService";
 
 interface EducationOfficerFormProps {
@@ -49,6 +50,13 @@ export function EducationOfficerForm({
   const [showHistory, setShowHistory] = useState(false);
   const [questionsError, setQuestionsError] = useState<string | null>(null);
 
+  // Core metadata fields expected by the server
+  const [recordType, setRecordType] = useState("ENROLLMENT");
+  const [institutionName, setInstitutionName] = useState("");
+  const [academicYear, setAcademicYear] = useState("");
+  const [classGrade, setClassGrade] = useState("");
+  const [attendanceRate, setAttendanceRate] = useState("");
+
   // Load questions when education type changes
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -57,9 +65,15 @@ export function EducationOfficerForm({
       setAnswers({});
       try {
         const data = await getEducationQuestions(educationType);
+        console.log("[Education Officer Form] Received education questions list payload:", {
+          educationType,
+          questionsCount: data?.length,
+          questions: data
+        });
         setQuestions(data);
       } catch (err: any) {
         const msg = err?.response?.data?.message || "Could not load form questions.";
+        console.error(`[Education Officer Form] Error fetching education questions for type ${educationType}:`, err);
         setQuestionsError(msg);
         setQuestions([]);
       } finally {
@@ -75,9 +89,15 @@ export function EducationOfficerForm({
       setLoadingRecords(true);
       try {
         const data = await getEducationRecords(citizenCode);
+        console.log("[Education Officer Form] Received existing education records payload:", {
+          citizenCode,
+          recordsCount: data?.length,
+          records: data
+        });
         setExistingRecords(data);
-      } catch {
+      } catch (err) {
         // Non-fatal — no records yet
+        console.warn(`[Education Officer Form] No existing education records found for citizen: ${citizenCode}`);
         setExistingRecords([]);
       } finally {
         setLoadingRecords(false);
@@ -91,6 +111,14 @@ export function EducationOfficerForm({
   };
 
   const validate = () => {
+    if (!institutionName.trim()) {
+      toast.error("Institution name is required");
+      return false;
+    }
+    if (!academicYear.trim()) {
+      toast.error("Academic year is required (e.g. 2025/2026)");
+      return false;
+    }
     const requiredMissing = questions
       .filter((q) => q.required && (answers[q.fieldKey] === undefined || answers[q.fieldKey] === "" || answers[q.fieldKey] === null))
       .map((q) => q.questionText);
@@ -107,14 +135,30 @@ export function EducationOfficerForm({
 
     setSubmitting(true);
     try {
-      await submitEducationRecord({ citizenCode, answers, educationType });
+      const payload: EducationRecordPayload = {
+        citizenCode,
+        recordType,
+        institutionName: institutionName.trim(),
+        academicYear: academicYear.trim(),
+        classGrade: classGrade.trim() || undefined,
+        attendanceRate: attendanceRate ? Number(attendanceRate) : undefined,
+        ...answers,
+      };
+      console.log("[Education Officer Form] Submitting education record payload:", payload);
+      const result = await submitEducationRecord(payload);
+      console.log("[Education Officer Form] Received submitted education record response payload:", result);
       toast.success("Education record submitted successfully!");
       setAnswers({});
+      setInstitutionName("");
+      setAcademicYear("");
+      setClassGrade("");
+      setAttendanceRate("");
       const updated = await getEducationRecords(citizenCode);
       setExistingRecords(updated);
       onSuccess?.();
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || "Failed to submit education record.";
+      console.error("[Education Officer Form] Error submitting education record:", err);
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -251,6 +295,85 @@ export function EducationOfficerForm({
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Base Metadata Section */}
+          <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 space-y-4 mb-4">
+            <h4 className="text-xs font-bold text-slate-700 uppercase font-mono tracking-wider">
+              Core Institution Metadata
+            </h4>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
+                  Record Type *
+                </label>
+                <select
+                  value={recordType}
+                  onChange={(e) => setRecordType(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 transition-all cursor-pointer font-medium"
+                >
+                  <option value="ENROLLMENT">Enrollment</option>
+                  <option value="EXAM_RESULT">Exam Result</option>
+                  <option value="ATTENDANCE">Attendance</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
+                  Academic Year *
+                </label>
+                <input
+                  type="text"
+                  value={academicYear}
+                  onChange={(e) => setAcademicYear(e.target.value)}
+                  placeholder="e.g. 2025/2026"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 transition-all placeholder-slate-300"
+                />
+              </div>
+
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
+                  Institution Name *
+                </label>
+                <input
+                  type="text"
+                  value={institutionName}
+                  onChange={(e) => setInstitutionName(e.target.value)}
+                  placeholder="e.g. Government Secondary School, Ikeja"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 transition-all placeholder-slate-300"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
+                  Class/Grade (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={classGrade}
+                  onChange={(e) => setClassGrade(e.target.value)}
+                  placeholder="e.g. SSS 3"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 transition-all placeholder-slate-300"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
+                  Attendance Rate % (Optional)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={attendanceRate}
+                  onChange={(e) => setAttendanceRate(e.target.value)}
+                  placeholder="e.g. 95.5"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 transition-all placeholder-slate-300"
+                />
+              </div>
+            </div>
+          </div>
+
           {questions.map((q) => (
             <div key={q.fieldKey} className="space-y-1.5">
               <label className="text-[10px] font-bold text-slate-500 uppercase font-mono tracking-wider block">

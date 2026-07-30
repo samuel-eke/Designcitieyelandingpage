@@ -278,6 +278,7 @@ export interface CitizenListItemDto {
   stateOfOrigin: string;
   stateOfResidence: string;
   lga: string;
+  residenceLga: string;
   gender: string;
   age: number | null;
   cohortName: string;
@@ -298,6 +299,7 @@ export interface CitizenProfileAnalyticsDto {
   stateOfOrigin: string;
   stateOfResidence: string;
   lga: string;
+  residenceLga: string;
   address: string;
   registeredAt: string;
 

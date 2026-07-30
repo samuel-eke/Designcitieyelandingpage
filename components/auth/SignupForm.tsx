@@ -12,15 +12,6 @@ interface Props {
   onSwitchToLogin: () => void;
 }
 
-const SUPPORT_OPTIONS = [
-  { value: "scholarship", label: "Scholarship Track" },
-  { value: "medical_aid_treatment", label: "Medical Aid & Treatment" },
-  { value: "business_capital", label: "Business Capital Grant" },
-  { value: "investor_funding", label: "Investor Funding & Prototype Lab" },
-  { value: "job_opportunity", label: "Job & Internship Opportunity" },
-  { value: "skill_acquisition", label: "Digital Skills & Skill Acquisition" },
-];
-
 export function SignupForm({ onSwitchToLogin }: Props) {
   const { states, getLgasForState } = useStatesAndLgas();
 
@@ -36,6 +27,19 @@ export function SignupForm({ onSwitchToLogin }: Props) {
   } = useAuthStore();
 
   const availableLgas = getLgasForState(registerData.stateOfOrigin);
+  const availableResidenceLgas = getLgasForState(registerData.stateOfResidence);
+
+  const isUnder16 = (() => {
+    if (!registerData.dateOfBirth) return false;
+    const dob = new Date(registerData.dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return age < 16;
+  })();
 
   const [errors, setErrors] = useState<Partial<Record<keyof RegisterFormData | "consent" | "general", string>>>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -56,7 +60,7 @@ export function SignupForm({ onSwitchToLogin }: Props) {
     }
 
     // Middle Name (Optional)
-    if (registerData.middleName.trim() && !/^[A-Za-z]+$/.test(registerData.middleName.trim())) {
+    if ((registerData.middleName || "").trim() && !/^[A-Za-z]+$/.test((registerData.middleName || "").trim())) {
       e.middleName = "Middle name can only contain letters";
     }
 
@@ -67,10 +71,8 @@ export function SignupForm({ onSwitchToLogin }: Props) {
       e.lastName = "Last name can only contain letters";
     }
 
-    // Email
-    if (!registerData.email.trim()) {
-      e.email = "Email address is required";
-    } else if (!/^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/.test(registerData.email.trim())) {
+    // Email (Optional)
+    if ((registerData.email || "").trim() && !/^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/.test((registerData.email || "").trim())) {
       e.email = "Please enter a valid email address";
     }
 
@@ -88,11 +90,46 @@ export function SignupForm({ onSwitchToLogin }: Props) {
       e.password = "Password must be at least 8 characters long";
     }
 
-    // NIN (exactly 10 digits)
-    if (!registerData.nin.trim()) {
-      e.nin = "NIN is required";
-    } else if (!/^[0-9]{11}$/.test(registerData.nin.trim())) {
-      e.nin = "NIN must be exactly 11 digits (e.g. 5874123657)";
+    // Date of Birth & Age Check
+    let calculatedIsUnder16 = false;
+    if (!registerData.dateOfBirth) {
+      e.dateOfBirth = "Date of birth is required";
+    } else {
+      const dob = new Date(registerData.dateOfBirth);
+      const today = new Date();
+      if (dob >= today) {
+        e.dateOfBirth = "Date of birth must be in the past";
+      } else {
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+          age--;
+        }
+        calculatedIsUnder16 = age < 16;
+      }
+    }
+
+    // NIN & Parent/Guardian NIN
+    if (calculatedIsUnder16) {
+      const hasNin = !!(registerData.nin || "").trim();
+      const hasParentNin = !!(registerData.parentNin && (registerData.parentNin || "").trim());
+      
+      if (!hasNin && !hasParentNin) {
+        e.nin = "Either NIN or Parent/Guardian's NIN is required for minors under 16";
+      } else {
+        if (hasNin && !/^[0-9]{11}$/.test((registerData.nin || "").trim())) {
+          e.nin = "NIN must be exactly 11 digits";
+        }
+        if (hasParentNin && !/^[0-9]{11}$/.test((registerData.parentNin || "").trim())) {
+          e.parentNin = "Parent/Guardian's NIN must be exactly 11 digits";
+        }
+      }
+    } else {
+      if (!(registerData.nin || "").trim()) {
+        e.nin = "NIN is required";
+      } else if (!/^[0-9]{11}$/.test((registerData.nin || "").trim())) {
+        e.nin = "NIN must be exactly 11 digits";
+      }
     }
 
     // Gender
@@ -112,26 +149,16 @@ export function SignupForm({ onSwitchToLogin }: Props) {
       e.stateOfResidence = "State of residence is required";
     }
 
+    // LGA of Residence
+    if (!registerData.residenceLga) {
+      e.residenceLga = "LGA of residence is required";
+    }
+
     // State of Origin
     if (!registerData.stateOfOrigin) {
       e.stateOfOrigin = "State of origin is required";
     }
 
-    // Date of Birth
-    if (!registerData.dateOfBirth) {
-      e.dateOfBirth = "Date of birth is required";
-    } else {
-      const dob = new Date(registerData.dateOfBirth);
-      const today = new Date();
-      if (dob >= today) {
-        e.dateOfBirth = "Date of birth must be in the past";
-      }
-    }
-
-    // Desired Support
-    if (!registerData.desiredSupport) {
-      e.desiredSupport = "Please select your desired support program";
-    }
 
     // Consent
     if (!consent) {
@@ -150,8 +177,18 @@ export function SignupForm({ onSwitchToLogin }: Props) {
     const sanitizedState = registerData.stateOfResidence === "FCT - Abuja" ? "FCT" : registerData.stateOfResidence;
     const sanitizedOrigin = registerData.stateOfOrigin === "FCT - Abuja" ? "FCT" : registerData.stateOfOrigin;
 
+    // Sanitize empty inputs to undefined so they are omitted in serialization
+    const sanitizedEmail = (registerData.email || "").trim() || undefined;
+    const sanitizedNin = (registerData.nin || "").trim() || undefined;
+    const sanitizedParentNin = (isUnder16 && registerData.parentNin) ? ((registerData.parentNin || "").trim() || undefined) : undefined;
+    const sanitizedMiddleName = (registerData.middleName || "").trim() || undefined;
+
     const payload = {
       ...registerData,
+      email: sanitizedEmail,
+      middleName: sanitizedMiddleName,
+      nin: sanitizedNin,
+      parentNin: sanitizedParentNin,
       stateOfResidence: sanitizedState,
       stateOfOrigin: sanitizedOrigin,
     };
@@ -163,7 +200,7 @@ export function SignupForm({ onSwitchToLogin }: Props) {
     return (
       <SuccessScreen
         name={`${registerData.firstName} ${registerData.lastName}`}
-        email={registerData.email}
+        email={registerData.email || ""}
         citizenCode={successData.citizenCode}
         cohortName={successData.cohortPlacement}
       />
@@ -225,7 +262,7 @@ export function SignupForm({ onSwitchToLogin }: Props) {
 
             <FieldWrapper label="Middle Name" optional error={errors.middleName}>
               <Input
-                value={registerData.middleName}
+                value={registerData.middleName || ""}
                 onChange={(e) => setRegisterData({ middleName: e.target.value })}
                 placeholder="Braun"
                 error={!!errors.middleName}
@@ -279,12 +316,12 @@ export function SignupForm({ onSwitchToLogin }: Props) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FieldWrapper label="Email Address" required error={errors.email}>
+            <FieldWrapper label="Email Address" optional error={errors.email}>
               <Input
                 type="email"
-                value={registerData.email}
+                value={registerData.email || ""}
                 onChange={(e) => setRegisterData({ email: e.target.value })}
-                placeholder="ekeeke@themail.com"
+                placeholder="ekeeke@themail.com (Optional)"
                 error={!!errors.email}
               />
             </FieldWrapper>
@@ -301,11 +338,16 @@ export function SignupForm({ onSwitchToLogin }: Props) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FieldWrapper label="National Identification Number (NIN)" required error={errors.nin}>
+            <FieldWrapper
+              label={isUnder16 ? "National Identification Number (NIN) (Optional)" : "National Identification Number (NIN)"}
+              required={!isUnder16}
+              optional={isUnder16}
+              error={errors.nin}
+            >
               <Input
                 type="text"
                 maxLength={11}
-                value={registerData.nin}
+                value={registerData.nin || ""}
                 onChange={(e) => setRegisterData({ nin: e.target.value })}
                 placeholder="5874123657"
                 error={!!errors.nin}
@@ -332,6 +374,21 @@ export function SignupForm({ onSwitchToLogin }: Props) {
               </div>
             </FieldWrapper>
           </div>
+
+          {isUnder16 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FieldWrapper label="Parent/Guardian's NIN" required error={errors.parentNin}>
+                <Input
+                  type="text"
+                  maxLength={11}
+                  value={registerData.parentNin || ""}
+                  onChange={(e) => setRegisterData({ parentNin: e.target.value })}
+                  placeholder="5874123657"
+                  error={!!errors.parentNin}
+                />
+              </FieldWrapper>
+            </div>
+          )}
         </div>
 
         {/* Location & Welfare Support Section */}
@@ -343,11 +400,15 @@ export function SignupForm({ onSwitchToLogin }: Props) {
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FieldWrapper label="State of Residence" required error={errors.stateOfResidence}>
               <Select
                 value={registerData.stateOfResidence}
-                onChange={(e) => setRegisterData({ stateOfResidence: e.target.value })}
+                onChange={(e) => {
+                  const newState = e.target.value;
+                  const lgas = getLgasForState(newState);
+                  setRegisterData({ stateOfResidence: newState, residenceLga: lgas[0] || "" });
+                }}
                 placeholder="Select State"
                 error={!!errors.stateOfResidence}
               >
@@ -359,6 +420,24 @@ export function SignupForm({ onSwitchToLogin }: Props) {
               </Select>
             </FieldWrapper>
 
+            <FieldWrapper label="LGA of Residence" required error={errors.residenceLga}>
+              <Select
+                value={registerData.residenceLga}
+                onChange={(e) => setRegisterData({ residenceLga: e.target.value })}
+                placeholder={registerData.stateOfResidence ? "Select LGA" : "Select State of Residence First"}
+                error={!!errors.residenceLga}
+                disabled={!registerData.stateOfResidence}
+              >
+                {availableResidenceLgas.map((lgaItem) => (
+                  <option key={lgaItem} value={lgaItem}>
+                    {lgaItem}
+                  </option>
+                ))}
+              </Select>
+            </FieldWrapper>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FieldWrapper label="State of Origin" required error={errors.stateOfOrigin}>
               <Select
                 value={registerData.stateOfOrigin}
@@ -378,7 +457,7 @@ export function SignupForm({ onSwitchToLogin }: Props) {
               </Select>
             </FieldWrapper>
 
-            <FieldWrapper label="Local Govt Area (LGA)" required error={errors.lga}>
+            <FieldWrapper label="LGA of Origin" required error={errors.lga}>
               <Select
                 value={registerData.lga}
                 onChange={(e) => setRegisterData({ lga: e.target.value })}
@@ -395,22 +474,6 @@ export function SignupForm({ onSwitchToLogin }: Props) {
             </FieldWrapper>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 mt-4">
-            <FieldWrapper label="Desired Support Program" required error={errors.desiredSupport}>
-              <Select
-                value={registerData.desiredSupport}
-                onChange={(e) => setRegisterData({ desiredSupport: e.target.value })}
-                placeholder="Select Support Area"
-                error={!!errors.desiredSupport}
-              >
-                {SUPPORT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
-            </FieldWrapper>
-          </div>
 
           <FieldWrapper label="Residential Address" required error={errors.address}>
             <Input

@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Stethoscope,
   Baby,
@@ -11,11 +11,14 @@ import {
   Plus,
   ChevronDown,
   ChevronUp,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   submitHealthRecord,
   getHealthRecords,
+  getHealthQuestions,
+  HealthQuestionDto,
   HealthRecordPayload,
   HealthRecordType,
   HealthRecord,
@@ -59,6 +62,44 @@ export function HealthOfficerForm({
   const [showHistory, setShowHistory] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Dynamic Questionnaire States
+  const [questions, setQuestions] = useState<HealthQuestionDto[]>([]);
+  const [answers, setAnswers] = useState<Record<string, string | number | boolean | null>>({});
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
+  const [questionsError, setQuestionsError] = useState<string | null>(null);
+
+  // Load questions dynamically on mount or citizenCode change
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      setLoadingQuestions(true);
+      setQuestionsError(null);
+      setAnswers({});
+      try {
+        const data = await getHealthQuestions(citizenCode);
+        console.log("[Health Officer Form] Received health questions list payload:", {
+          citizenCode,
+          questionsCount: data?.length,
+          questions: data
+        });
+        setQuestions(data);
+      } catch (err: any) {
+        const msg = err?.response?.data?.message || "Could not load dynamic health questions.";
+        console.error(`[Health Officer Form] Error fetching health questions for citizen ${citizenCode}:`, err);
+        setQuestionsError(msg);
+        setQuestions([]);
+      } finally {
+        setLoadingQuestions(false);
+      }
+    };
+    if (citizenCode) {
+      fetchQuestions();
+    }
+  }, [citizenCode]);
+
+  const handleAnswer = (fieldKey: string, value: string | number | boolean | null) => {
+    setAnswers((prev) => ({ ...prev, [fieldKey]: value }));
+  };
+
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!description.trim()) errs.description = "Description is required";
@@ -73,23 +114,116 @@ export function HealthOfficerForm({
 
     setLoading(true);
     try {
+      // Map JSON fields to simple objects like { value: string } to match backend JSONB schema
+      const mappedAnswers: Record<string, any> = {};
+      questions.forEach((q) => {
+        const val = answers[q.fieldName];
+        if (val !== undefined && val !== "" && val !== null) {
+          if (q.dataType === "JSON") {
+            mappedAnswers[q.fieldName] = { value: val };
+          } else {
+            mappedAnswers[q.fieldName] = val;
+          }
+        }
+      });
+
       const payload: HealthRecordPayload = {
         citizenCode,
         recordType,
         description: description.trim(),
         notes: notes.trim() || undefined,
+        ...mappedAnswers,
       };
-      await submitHealthRecord(payload);
+
+      console.log("[Health Officer Form] Submitting health record payload:", payload);
+      const result = await submitHealthRecord(payload);
+      console.log("[Health Officer Form] Received submitted health record response payload:", result);
       toast.success(`Health record (${recordType}) submitted successfully!`);
       setDescription("");
       setNotes("");
+      setAnswers({});
       onSuccess?.();
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || "Failed to submit health record.";
+      console.error("[Health Officer Form] Error submitting health record:", err);
       toast.error(msg);
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderInput = (q: HealthQuestionDto) => {
+    const val = answers[q.fieldName];
+    const base = "w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all";
+
+    if (q.dataType === "BOOLEAN") {
+      return (
+        <div className="flex gap-3">
+          {[{ label: "Yes", val: true }, { label: "No", val: false }].map((opt) => (
+            <button
+              key={String(opt.val)}
+              type="button"
+              onClick={() => handleAnswer(q.fieldName, opt.val)}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 transition-all cursor-pointer ${val === opt.val
+                ? "bg-emerald-50 border-emerald-500 text-emerald-700"
+                : "bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300"
+                }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    if (q.choices && q.choices.length > 0) {
+      return (
+        <select
+          value={String(val ?? "")}
+          onChange={(e) => handleAnswer(q.fieldName, e.target.value)}
+          className={`${base} cursor-pointer`}
+        >
+          <option value="">Select...</option>
+          {q.choices.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+      );
+    }
+
+    if (q.dataType === "NUMBER") {
+      return (
+        <input
+          type="number"
+          value={val === null || val === undefined ? "" : String(val)}
+          onChange={(e) => handleAnswer(q.fieldName, e.target.value === "" ? null : Number(e.target.value))}
+          placeholder="Enter number..."
+          className={base}
+        />
+      );
+    }
+
+    if (q.dataType === "JSON") {
+      return (
+        <input
+          type="text"
+          value={String(val ?? "")}
+          onChange={(e) => handleAnswer(q.fieldName, e.target.value)}
+          placeholder="e.g. Completed, 3 doses / Normal limits"
+          className={base}
+        />
+      );
+    }
+
+    return (
+      <input
+        type="text"
+        value={String(val ?? "")}
+        onChange={(e) => handleAnswer(q.fieldName, e.target.value)}
+        placeholder="Enter answer..."
+        className={base}
+      />
+    );
   };
 
   const selectedType = RECORD_TYPES.find((t) => t.value === recordType)!;
@@ -180,6 +314,43 @@ export function HealthOfficerForm({
             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all placeholder-slate-300"
           />
         </div>
+
+        {/* Dynamic Questionnaire Section */}
+        {loadingQuestions ? (
+          <div className="flex items-center gap-2 py-6 justify-center text-xs text-slate-400">
+            <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+            Loading dynamic health questions...
+          </div>
+        ) : questionsError ? (
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+            <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-amber-800">Dynamic questions unavailable</p>
+              <p className="text-[10px] text-amber-600 mt-0.5">{questionsError}</p>
+            </div>
+          </div>
+        ) : questions.length > 0 ? (
+          <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-[10px] font-bold text-slate-700 uppercase font-mono tracking-wider">
+                Dynamic Health Questionnaire
+              </h4>
+              <span className="text-[8px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
+                Age Specific
+              </span>
+            </div>
+            <div className="space-y-4">
+              {questions.map((q) => (
+                <div key={q.fieldName} className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase font-mono tracking-wider block">
+                    {q.questionText} {q.ndprSensitive && <span className="text-red-400 font-bold text-[9px]">(NDPR Sensitive)</span>}
+                  </label>
+                  {renderInput(q)}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {/* Submit */}
         <button

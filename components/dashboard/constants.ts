@@ -5,7 +5,7 @@ import { Opportunity, KpiItem, ComplaintItem } from "./types";
  */
 
 export const SUPPORT_OPTIONS: Record<string, string> = {
-  scholarship: "Scholarship Track",
+  scholarship: "Scholarship Empowerment Program",
   medical_aid_treatment: "Medical Aid & Treatment",
   business_capital: "Business Capital Grant",
   investor_funding: "Investor Funding & Prototype Lab",
@@ -14,12 +14,12 @@ export const SUPPORT_OPTIONS: Record<string, string> = {
 };
 
 export const COHORTS: Record<string, string> = {
-  scholarship: "Academic Excellence Cohort",
-  medical_aid_treatment: "Healthcare Welfare Cohort",
-  business_capital: "SME Empowerment Cohort",
-  investor_funding: "Technological Innovation Cohort",
-  job_opportunity: "Career Development Cohort",
-  skill_acquisition: "Digital Skills Capacity Cohort",
+  scholarship: "Academic Excellence Life Stage",
+  medical_aid_treatment: "Healthcare Welfare Life Stage",
+  business_capital: "SME Empowerment Life Stage",
+  investor_funding: "Technological Innovation Life Stage",
+  job_opportunity: "Career Development Life Stage",
+  skill_acquisition: "Digital Skills Capacity Life Stage",
   default: "General Citizens Registry",
 };
 
