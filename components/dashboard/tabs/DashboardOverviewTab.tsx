@@ -6,6 +6,8 @@ import { AnnouncementFeed } from "../AnnouncementFeed";
 import { ProfileCompletionCard } from "../ProfileCompletionCard";
 import { OpportunitiesWidget } from "../OpportunitiesWidget";
 import { Opportunity } from "../types";
+import { AcademicProgressionCard } from "../education/AcademicProgressionCard";
+import { VocationalPortalCard } from "../vocational/VocationalPortalCard";
 
 interface DashboardOverviewTabProps {
   cohortName: string;
@@ -15,6 +17,8 @@ interface DashboardOverviewTabProps {
   appliedOpportunities: Record<string, boolean>;
   onApply: (id: string, title: string) => void;
   onNavigateTab: (tab: string) => void;
+  citizenCode?: string;
+  employmentStatus?: string;
 }
 
 export function DashboardOverviewTab({
@@ -25,6 +29,8 @@ export function DashboardOverviewTab({
   appliedOpportunities,
   onApply,
   onNavigateTab,
+  citizenCode = "",
+  employmentStatus = "",
 }: DashboardOverviewTabProps) {
   const supportGroupLabel = desiredSupportCode
     .split("_")
@@ -93,6 +99,23 @@ export function DashboardOverviewTab({
               </svg>
             </button>
           </div>
+
+          {/* Student Academic Updates Card */}
+          {citizenCode && (
+            <AcademicProgressionCard
+              citizenCode={citizenCode}
+              onViewProgression={() => onNavigateTab("education")}
+            />
+          )}
+
+          {/* Artisan & Vocational Portal Card */}
+          {citizenCode && (
+            <VocationalPortalCard
+              citizenCode={citizenCode}
+              employmentStatus={employmentStatus}
+              onNavigateTab={onNavigateTab}
+            />
+          )}
 
           <OpportunitiesWidget
             opportunities={matchingOpportunities}

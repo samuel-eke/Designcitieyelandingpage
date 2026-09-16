@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useAuthStore } from "@/components/auth/authStore";
 import { apiClient } from "@/lib/api";
 import { motion, AnimatePresence } from "motion/react";
-import { Award, User, FileText, Megaphone, LayoutDashboard } from "lucide-react";
+import { Award, User, FileText, Megaphone, LayoutDashboard, GraduationCap, Wrench } from "lucide-react";
 import { toast } from "sonner";
 
 import { SidebarItem, ChatMessage, Opportunity } from "@/components/dashboard/types";
@@ -23,6 +23,8 @@ import { DashboardOverviewTab } from "@/components/dashboard/tabs/DashboardOverv
 import { OpportunitiesTab } from "@/components/dashboard/tabs/OpportunitiesTab";
 import { ProfileTab } from "@/components/dashboard/tabs/ProfileTab";
 import { ComplaintsTab } from "@/components/dashboard/tabs/ComplaintsTab";
+import { AcademicProgressionTimeline } from "@/components/dashboard/education/AcademicProgressionTimeline";
+import { VocationalPortalCard } from "@/components/dashboard/vocational/VocationalPortalCard";
 
 export default function DashboardPage() {
   const { user, logout } = useAuthStore();
@@ -298,6 +300,8 @@ export default function DashboardPage() {
     { id: "overview", label: "Dashboard Overview", icon: LayoutDashboard },
     { id: "announcements", label: "Announcements Feed", icon: Megaphone },
     { id: "opportunities", label: "View Initiatives", icon: Award },
+    { id: "education", label: "Academic Records", icon: GraduationCap },
+    { id: "vocational", label: "Vocational & Skills", icon: Wrench },
     { id: "profile", label: "Profile", icon: User },
     { id: "complaints", label: "Lodge Complaint", icon: FileText, badge: complaints.length },
   ];
@@ -351,6 +355,8 @@ export default function DashboardPage() {
                   appliedOpportunities={appliedOpportunities}
                   onApply={handleApply}
                   onNavigateTab={setActiveTab}
+                  citizenCode={citizenCode}
+                  employmentStatus={user?.employmentStatus || user?.data?.employmentStatus || ""}
                 />
               )}
 
@@ -369,6 +375,58 @@ export default function DashboardPage() {
                   handleApply={handleApply}
                   cohortName={cohortName}
                 />
+              )}
+
+              {activeTab === "education" && (
+                <div className="space-y-6">
+                  <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                      <h2 className="text-base font-bold font-serif text-stone-900">
+                        Student Academic Progression & Result Registry
+                      </h2>
+                      <p className="text-xs text-stone-500 mt-0.5">
+                        Submit annual academic transcripts or dynamic course grades. Maintain an audit-ready progression log.
+                      </p>
+                    </div>
+                  </div>
+                  <AcademicProgressionTimeline citizenCode={citizenCode} />
+                </div>
+              )}
+
+              {activeTab === "vocational" && (
+                <div className="space-y-6">
+                  <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm">
+                    <h2 className="text-base font-bold font-serif text-stone-900">
+                      Artisan & Vocational Skills Portal
+                    </h2>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      Log your trade specializations, technical competencies, and apprenticeship targets to unlock tools grants and state workforce matching.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <VocationalPortalCard
+                      citizenCode={citizenCode}
+                      employmentStatus={user?.employmentStatus || user?.data?.employmentStatus || ""}
+                      onNavigateTab={setActiveTab}
+                    />
+                    <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm space-y-3">
+                      <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider">
+                        Vocational Program Guidelines
+                      </h4>
+                      <ul className="text-xs text-stone-600 space-y-2.5 list-disc list-inside">
+                        <li>
+                          <strong>Trade Specialization:</strong> Declare your primary craft to qualify for dedicated federal equipment grants.
+                        </li>
+                        <li>
+                          <strong>Competencies & Skills:</strong> Add specific hands-on competencies (e.g., Inverter Sizing, Arc Welding) to match with state cooperatives.
+                        </li>
+                        <li>
+                          <strong>Apprenticeship Roadmaps:</strong> Document upcoming master-artisan training or enterprise goals to boost welfare score.
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {activeTab === "profile" && (

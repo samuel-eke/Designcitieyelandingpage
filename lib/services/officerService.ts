@@ -37,6 +37,7 @@ export interface HealthQuestionDto {
   dataType: "BOOLEAN" | "STRING" | "NUMBER" | "JSON";
   choices?: string[];
   ndprSensitive: boolean;
+  previousValue?: any;
 }
 
 export interface HealthRecord {
@@ -223,3 +224,43 @@ export async function getAllCitizens(
   );
   return response.data;
 }
+
+// ---------------------------------------------------------------------------
+// Admin Officer Management — /api/admin/officers/*
+// ---------------------------------------------------------------------------
+
+import type { OfficerSummary, OfficerFilterParams } from "@/lib/types/officer";
+
+/**
+ * Fetch all registered field officers matching the given filters.
+ * Accessible to super_admin and agency_admin roles.
+ */
+export async function getRegisteredOfficers(
+  params?: OfficerFilterParams
+): Promise<OfficerSummary[]> {
+  const queryParams = new URLSearchParams();
+  if (params?.role) queryParams.set("role", params.role);
+  if (params?.specialty) queryParams.set("specialty", params.specialty);
+  if (params?.state) queryParams.set("state", params.state);
+  if (params?.lga) queryParams.set("lga", params.lga);
+  if (params?.query) queryParams.set("query", params.query);
+
+  const queryStr = queryParams.toString() ? `?${queryParams.toString()}` : "";
+  const response = await apiClient.get<OfficerSummary[]>(
+    `/api/admin/officers${queryStr}`
+  );
+  return response.data;
+}
+
+/**
+ * Fetch full details for a registered field officer by their unique citizen code.
+ */
+export async function getOfficerByCode(
+  citizenCode: string
+): Promise<OfficerSummary> {
+  const response = await apiClient.get<OfficerSummary>(
+    `/api/admin/officers/${encodeURIComponent(citizenCode)}`
+  );
+  return response.data;
+}
+

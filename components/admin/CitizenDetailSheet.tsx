@@ -39,6 +39,8 @@ import {
   Save,
   X,
 } from "lucide-react";
+import { AcademicProgressionTimeline } from "@/components/dashboard/education/AcademicProgressionTimeline";
+import { VocationalPortalCard } from "@/components/dashboard/vocational/VocationalPortalCard";
 
 interface CitizenDetailSheetProps {
   citizenCode: string | null;
@@ -624,6 +626,19 @@ export function CitizenDetailSheet({
                       </div>
                     )}
                   </div>
+
+                  {/* Annual Academic Progression & Status Transitions */}
+                  {citizenCode && (
+                    <div className="mt-6 pt-4 border-t border-slate-100 space-y-3">
+                      <h4 className="text-xs font-mono font-bold text-blue-600 uppercase tracking-widest px-2">
+                        Annual Academic Progression & Audit Transitions
+                      </h4>
+                      <AcademicProgressionTimeline
+                        citizenCode={citizenCode}
+                        isOfficerReview={false}
+                      />
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* 3. ECONOMY & WORKFORCE */}
@@ -671,6 +686,19 @@ export function CitizenDetailSheet({
                     <DataField label="Interest in Senior Mentorship" value={profile.seniorMentorInterest} />
                     <DataField label="Senior Center Membership" value={profile.seniorCenterMembership} />
                   </SectionCard>
+
+                  {/* Dedicated Vocational Profile for Artisans & Unemployed */}
+                  {citizenCode && (
+                    <div className="mt-6 pt-4 border-t border-slate-100 space-y-3">
+                      <h4 className="text-xs font-mono font-bold text-amber-600 uppercase tracking-widest px-2">
+                        Artisan & Vocational Skills Profile
+                      </h4>
+                      <VocationalPortalCard
+                        citizenCode={citizenCode}
+                        employmentStatus={profile.employmentStatus || profile.currentEmploymentStatus || ""}
+                      />
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* 4. HEALTH & SOCIAL WELFARE */}

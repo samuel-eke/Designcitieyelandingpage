@@ -82,6 +82,19 @@ export function HealthOfficerForm({
           questions: data
         });
         setQuestions(data);
+
+        // Pre-populate answers with previous values
+        const initialAnswers: Record<string, any> = {};
+        data.forEach((q) => {
+          if (q.previousValue !== undefined && q.previousValue !== null) {
+            if (q.dataType === "JSON" && typeof q.previousValue === "object") {
+              initialAnswers[q.fieldName] = q.previousValue.value;
+            } else {
+              initialAnswers[q.fieldName] = q.previousValue;
+            }
+          }
+        });
+        setAnswers(initialAnswers);
       } catch (err: any) {
         const msg = err?.response?.data?.message || "Could not load dynamic health questions.";
         console.error(`[Health Officer Form] Error fetching health questions for citizen ${citizenCode}:`, err);
@@ -259,11 +272,10 @@ export function HealthOfficerForm({
                   type="button"
                   key={type.value}
                   onClick={() => setRecordType(type.value)}
-                  className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
-                    isSelected
-                      ? `${colorMap[type.color]} ring-2`
-                      : "bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-600"
-                  }`}
+                  className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${isSelected
+                    ? `${colorMap[type.color]} ring-2`
+                    : "bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-600"
+                    }`}
                 >
                   <Icon className="w-4 h-4 mb-1.5" />
                   <span className="text-[11px] font-bold block">{type.label}</span>
@@ -289,12 +301,11 @@ export function HealthOfficerForm({
               recordType === "VACCINATION"
                 ? "e.g. Administered OPV dose 2. Child present with parent. No adverse reactions noted."
                 : recordType === "MATERNAL"
-                ? "e.g. Antenatal visit 3. Blood pressure: 120/80. Fundal height: 28cm. Baby heartbeat normal."
-                : "Describe the health observation or intervention in detail..."
+                  ? "e.g. Antenatal visit 3. Blood pressure: 120/80. Fundal height: 28cm. Baby heartbeat normal."
+                  : "Describe the health observation or intervention in detail..."
             }
-            className={`w-full px-4 py-3 bg-slate-50 border ${
-              errors.description ? "border-red-400" : "border-slate-200"
-            } rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all resize-none placeholder-slate-300`}
+            className={`w-full px-4 py-3 bg-slate-50 border ${errors.description ? "border-red-400" : "border-slate-200"
+              } rounded-xl text-xs text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all resize-none placeholder-slate-300`}
           />
           {errors.description && (
             <span className="text-[10px] text-red-500">{errors.description}</span>
@@ -333,17 +344,15 @@ export function HealthOfficerForm({
           <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-[10px] font-bold text-slate-700 uppercase font-mono tracking-wider">
-                Dynamic Health Questionnaire
+                Basic Health Check
               </h4>
-              <span className="text-[8px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
-                Age Specific
-              </span>
+
             </div>
             <div className="space-y-4">
               {questions.map((q) => (
                 <div key={q.fieldName} className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase font-mono tracking-wider block">
-                    {q.questionText} {q.ndprSensitive && <span className="text-red-400 font-bold text-[9px]">(NDPR Sensitive)</span>}
+                    {q.questionText}
                   </label>
                   {renderInput(q)}
                 </div>

@@ -300,7 +300,7 @@ export function EducationOfficerForm({
             <h4 className="text-xs font-bold text-slate-700 uppercase font-mono tracking-wider">
               Core Institution Metadata
             </h4>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider block">

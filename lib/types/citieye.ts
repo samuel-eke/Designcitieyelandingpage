@@ -27,7 +27,7 @@ export type DesiredSupport =
  * citizen_profile.employment_status_type
  * Maps to: EmploymentStatus.java
  */
-export type EmploymentStatus = "employed" | "unemployed" | "business_owner";
+export type EmploymentStatus = "employed" | "unemployed" | "business_owner" | "artisan";
 
 /**
  * cohort_placement.citizen_kpis.status

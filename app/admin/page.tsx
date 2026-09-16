@@ -49,6 +49,7 @@ import { TopBar } from "@/components/admin/dashboard/TopBar";
 import { StatCard } from "@/components/admin/dashboard/StatCard";
 import { WidgetPanel } from "@/components/admin/dashboard/WidgetPanel";
 import { CitizenDetailSheet } from "@/components/admin/CitizenDetailSheet";
+import { SuperAdminEducationPanel } from "@/components/admin/education/SuperAdminEducationPanel";
 import { cn } from "@/components/ui/utils";
 
 // Import Recharts components
@@ -1683,59 +1684,10 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* ==================== TAB 8: FIELD OFFICERS ==================== */}
+              {/* ==================== TAB 8: FIELD OFFICERS & JURISDICTIONS ==================== */}
               {activeTab === "officers" && (
-                <div className="bg-white border border-slate-200/60 p-6 rounded-3xl shadow-xs space-y-4 animate-in fade-in duration-300">
-                  <div className="flex items-center gap-2 select-none">
-                    <UserCheck className="w-5 h-5 text-blue-600" />
-                    <h4 className="text-sm font-mono font-bold text-slate-800 uppercase tracking-widest">
-                      Active Field Officer Nodes
-                    </h4>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr className="border-b border-slate-200/80 bg-slate-50/50 text-[9px] font-mono text-slate-400 uppercase tracking-wider">
-                          <th className="py-3 px-4 font-bold">Officer Name</th>
-                          <th className="py-3 px-4 font-bold">Officer Code</th>
-                          <th className="py-3 px-4 font-bold">Assigned Domain</th>
-                          <th className="py-3 px-4 font-bold text-right">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-600">
-                        <tr className="hover:bg-slate-50/40">
-                          <td className="py-2.5 px-4 font-semibold text-slate-800">Oluwaseun Adebayo</td>
-                          <td className="py-2.5 px-4 font-mono text-[10px] text-slate-400">cit-fo-hl-009101</td>
-                          <td className="py-2.5 px-4">
-                            <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-mono font-bold uppercase">
-                              Health Specialization
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-4 text-right font-mono font-bold text-green-600">ACTIVE</td>
-                        </tr>
-                        <tr className="hover:bg-slate-50/40">
-                          <td className="py-2.5 px-4 font-semibold text-slate-800">Chidi Benson</td>
-                          <td className="py-2.5 px-4 font-mono text-[10px] text-slate-400">cit-fo-ed-009102</td>
-                          <td className="py-2.5 px-4">
-                            <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-mono font-bold uppercase">
-                              Education Specialization
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-4 text-right font-mono font-bold text-green-600">ACTIVE</td>
-                        </tr>
-                        <tr className="hover:bg-slate-50/40">
-                          <td className="py-2.5 px-4 font-semibold text-slate-800">Fatima Yusuf</td>
-                          <td className="py-2.5 px-4 font-mono text-[10px] text-slate-400">cit-fo-ge-009103</td>
-                          <td className="py-2.5 px-4">
-                            <span className="px-2 py-0.5 rounded bg-slate-50 text-slate-600 border border-slate-200/50 text-[9px] font-mono font-bold uppercase">
-                              General Registry
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-4 text-right font-mono font-bold text-slate-400">OFFLINE</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                <div className="space-y-6 animate-in fade-in duration-300">
+                  <SuperAdminEducationPanel onSelectCitizen={(code) => setSelectedCitizenCode(code)} />
                 </div>
               )}
 
