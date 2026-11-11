@@ -50,6 +50,13 @@ import { StatCard } from "@/components/admin/dashboard/StatCard";
 import { WidgetPanel } from "@/components/admin/dashboard/WidgetPanel";
 import { CitizenDetailSheet } from "@/components/admin/CitizenDetailSheet";
 import { SuperAdminEducationPanel } from "@/components/admin/education/SuperAdminEducationPanel";
+import { EducationDomainTab } from "@/components/admin/domains/EducationDomainTab";
+import { HealthDomainTab } from "@/components/admin/domains/HealthDomainTab";
+import { HrJobsDomainTab } from "@/components/admin/domains/HrJobsDomainTab";
+import { PensionDomainTab } from "@/components/admin/domains/PensionDomainTab";
+import type { DomainFilterParams } from "@/lib/types/domainCitizens";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { Suspense } from "react";
 import { cn } from "@/components/ui/utils";
 
 // Import Recharts components
@@ -67,7 +74,7 @@ import {
   Legend,
 } from "recharts";
 
-export default function AdminPage() {
+function AdminDashboardContent() {
   const { user, accessToken, logout, adminLogin, loading, initializeAuth } = useAuthStore();
   const [role, setRole] = useState<string>("GUEST");
   const [email, setEmail] = useState<string>("admin@citieye.gov.ng");
@@ -83,10 +90,167 @@ export default function AdminPage() {
     return user?.stateOfResidence || user?.data?.stateOfResidence || "";
   }, [user]);
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
   // Active dashboard tab
   const [activeTab, setActiveTab] = useState<
-    "overview" | "registry" | "health" | "education" | "hr" | "business" | "pension" | "officers" | "users" | "settings"
+    "overview" | "registry" | "health" | "education" | "hr" | "pension" | "officers" | "users" | "settings"
   >("overview");
+
+  // Domain citizen filter state (synced with URL)
+  const [domainFilters, setDomainFilters] = useState<DomainFilterParams>({
+    page: 0,
+    size: 20,
+  });
+
+  const handleDomainFilterChange = (key: keyof DomainFilterParams, value: any) => {
+    setDomainFilters((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key !== "page") {
+        next.page = 0; // reset to first page on filter change
+      }
+      return next;
+    });
+  };
+
+  const handleResetDomainFilters = () => {
+    setDomainFilters({
+      page: 0,
+      size: 20,
+    });
+  };
+
+  const handleTabChange = (tab: any) => {
+    const normalized: "overview" | "registry" | "health" | "education" | "hr" | "pension" | "officers" | "users" | "settings" =
+      tab === "health_domain" ? "health" : tab === "business" ? "hr" : tab;
+
+    if (normalized === activeTab) return;
+
+    // Reset domain filters so parameters NEVER carry over to the new tab
+    const cleanFilters: DomainFilterParams = {
+      page: 0,
+      size: 20,
+    };
+
+    setActiveTab(normalized);
+    setDomainFilters(cleanFilters);
+
+    const newUrl = normalized === "overview" ? pathname : `${pathname}?tab=${normalized}`;
+    if (typeof window !== "undefined") {
+      window.history.pushState(null, "", newUrl);
+    }
+  };
+
+  // Read initial tab and filters from URL on mount or URL change
+  useEffect(() => {
+    if (!searchParams) return;
+    const tabParam = searchParams.get("tab");
+    if (tabParam) {
+      if (tabParam === "health_domain" || tabParam === "health") {
+        setActiveTab("health");
+      } else if (tabParam === "business" || tabParam === "hr") {
+        setActiveTab("hr");
+      } else if (
+        ["overview", "registry", "health", "education", "hr", "pension", "officers", "users", "settings"].includes(
+          tabParam
+        )
+      ) {
+        setActiveTab(tabParam as any);
+      }
+    }
+
+    const query = searchParams.get("query") || searchParams.get("q") || undefined;
+    const page = searchParams.get("page") ? parseInt(searchParams.get("page")!, 10) : 0;
+    const size = searchParams.get("size") ? parseInt(searchParams.get("size")!, 10) : 20;
+    const educationalLevel = searchParams.get("educationalLevel") || searchParams.get("eduLevel") || undefined;
+    const isPregnant = searchParams.has("isPregnant")
+      ? searchParams.get("isPregnant") === "true"
+      : undefined;
+    const hasHmo = searchParams.has("hasHmo")
+      ? searchParams.get("hasHmo") === "true"
+      : undefined;
+    const bloodGroup = searchParams.get("bloodGroup") || undefined;
+    const bloodGenotype = searchParams.get("bloodGenotype") || undefined;
+    const chronicCondition = searchParams.has("chronicCondition")
+      ? searchParams.get("chronicCondition") === "true"
+      : searchParams.has("chronic")
+      ? searchParams.get("chronic") === "true"
+      : undefined;
+    const employmentTrack = searchParams.get("employmentTrack") || searchParams.get("track") || undefined;
+    const cacStatus = searchParams.get("cacStatus") || searchParams.get("cac") || undefined;
+    const unemployedDesiredNextStep = searchParams.get("unemployedDesiredNextStep") || searchParams.get("intervention") || undefined;
+    const pensionStatus = searchParams.get("pensionStatus") || undefined;
+    const isRetired = searchParams.has("isRetired")
+      ? searchParams.get("isRetired") === "true"
+      : undefined;
+    const interestedInAdultCareHome = searchParams.has("interestedInAdultCareHome")
+      ? searchParams.get("interestedInAdultCareHome") === "true"
+      : searchParams.has("careHome")
+      ? searchParams.get("careHome") === "true"
+      : undefined;
+    const gender = searchParams.get("gender") || undefined;
+    const state = searchParams.get("state") || undefined;
+    const lga = searchParams.get("lga") || undefined;
+
+    setDomainFilters({
+      query,
+      page: isNaN(page) ? 0 : page,
+      size: isNaN(size) ? 20 : size,
+      educationalLevel,
+      isPregnant,
+      hasHmo,
+      bloodGroup,
+      bloodGenotype,
+      chronicCondition,
+      employmentTrack,
+      cacStatus,
+      unemployedDesiredNextStep,
+      pensionStatus,
+      isRetired,
+      interestedInAdultCareHome,
+      gender,
+      state,
+      lga,
+    });
+  }, [searchParams]);
+
+  // Sync current tab's active filters to URL searchParams without carry-over
+  useEffect(() => {
+    if (!isClient) return;
+
+    const params = new URLSearchParams();
+    if (activeTab && activeTab !== "overview") {
+      params.set("tab", activeTab);
+    }
+    if (domainFilters.query) params.set("query", domainFilters.query);
+    if (domainFilters.state) params.set("state", domainFilters.state);
+    if (domainFilters.lga) params.set("lga", domainFilters.lga);
+    if (domainFilters.gender) params.set("gender", domainFilters.gender);
+    if (domainFilters.educationalLevel) params.set("educationalLevel", domainFilters.educationalLevel);
+    if (domainFilters.isPregnant !== undefined) params.set("isPregnant", String(domainFilters.isPregnant));
+    if (domainFilters.hasHmo !== undefined) params.set("hasHmo", String(domainFilters.hasHmo));
+    if (domainFilters.bloodGroup) params.set("bloodGroup", domainFilters.bloodGroup);
+    if (domainFilters.bloodGenotype) params.set("bloodGenotype", domainFilters.bloodGenotype);
+    if (domainFilters.chronicCondition !== undefined) params.set("chronicCondition", String(domainFilters.chronicCondition));
+    if (domainFilters.employmentTrack) params.set("employmentTrack", domainFilters.employmentTrack);
+    if (domainFilters.cacStatus) params.set("cacStatus", domainFilters.cacStatus);
+    if (domainFilters.unemployedDesiredNextStep) params.set("unemployedDesiredNextStep", domainFilters.unemployedDesiredNextStep);
+    if (domainFilters.pensionStatus) params.set("pensionStatus", domainFilters.pensionStatus);
+    if (domainFilters.isRetired !== undefined) params.set("isRetired", String(domainFilters.isRetired));
+    if (domainFilters.interestedInAdultCareHome !== undefined) params.set("interestedInAdultCareHome", String(domainFilters.interestedInAdultCareHome));
+    if (domainFilters.page && domainFilters.page > 0) params.set("page", String(domainFilters.page));
+    if (domainFilters.size && domainFilters.size !== 20) params.set("size", String(domainFilters.size));
+
+    const qs = params.toString();
+    const newUrl = qs ? `${pathname}?${qs}` : pathname;
+    const currentQs = typeof window !== "undefined" ? window.location.search.replace(/^\?/, "") : "";
+
+    if (qs !== currentQs) {
+      window.history.replaceState(null, "", newUrl);
+    }
+  }, [activeTab, domainFilters, pathname, isClient]);
 
   // Dynamic role-based route guard
   useEffect(() => {
@@ -553,7 +717,7 @@ export default function AdminPage() {
       {/* 1. Left Collapsible Sidebar Navigation */}
       <SidebarNav
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         isCollapsed={sidebarCollapsed}
         setIsCollapsed={setSidebarCollapsed}
         role={role}
@@ -570,7 +734,7 @@ export default function AdminPage() {
           onSearchChange={(val) => {
             setGlobalSearch(val);
             if (activeTab !== "registry") {
-              setActiveTab("registry"); // Route user to search explorer
+              handleTabChange("registry"); // Route user to search explorer
             }
           }}
           onSyncViews={handleSyncViews}
@@ -618,7 +782,7 @@ export default function AdminPage() {
                       progressValue={vaccinationRatePercent || 98}
                       accentColor="green"
                       footerLabel="View welfare indices"
-                      onFooterClick={() => setActiveTab("health")}
+                      onFooterClick={() => handleTabChange("health")}
                     />
 
                     {/* Stat Card 2: Total Registered Citizens */}
@@ -633,7 +797,7 @@ export default function AdminPage() {
                       }}
                       accentColor="blue"
                       footerLabel="Browse database"
-                      onFooterClick={() => setActiveTab("registry")}
+                      onFooterClick={() => handleTabChange("registry")}
                     />
 
                     {/* Stat Card 3: Male Registry */}
@@ -650,7 +814,7 @@ export default function AdminPage() {
                       footerLabel="View male roster"
                       onFooterClick={() => {
                         handleFilterChange("gender", "male");
-                        setActiveTab("registry");
+                        handleTabChange("registry");
                       }}
                     />
 
@@ -668,7 +832,7 @@ export default function AdminPage() {
                       footerLabel="View female roster"
                       onFooterClick={() => {
                         handleFilterChange("gender", "female");
-                        setActiveTab("registry");
+                        handleTabChange("registry");
                       }}
                     />
                   </div>
@@ -960,7 +1124,7 @@ export default function AdminPage() {
                         </h4>
                       </div>
                       <button
-                        onClick={() => setActiveTab("registry")}
+                        onClick={() => handleTabChange("registry")}
                         className="text-[10px] font-mono font-bold text-blue-600 hover:text-blue-500 uppercase tracking-widest outline-none cursor-pointer"
                       >
                         Launch Registry Explorer →
@@ -1189,7 +1353,14 @@ export default function AdminPage() {
                                   </span>
                                 </td>
                                 <td className="py-3.5 px-4 font-medium text-slate-700">
-                                  {citizen.cohortName}
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span>{citizen.cohortName}</span>
+                                    {citizen.age !== null && citizen.age >= 16 && citizen.age < 18 && (
+                                      <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                        Grace Period
+                                      </span>
+                                    )}
+                                  </div>
                                 </td>
                                 <td className="py-3.5 px-4">
                                   <div className="flex flex-col leading-none">
@@ -1246,442 +1417,44 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* ==================== TAB 3: WELFARE & HEALTH INDICATORS ==================== */}
-              {activeTab === "health" && summary && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  {/* Indicators Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Insurance Coverage */}
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-6 flex flex-col justify-between shadow-xs h-[200px]">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center select-none">
-                          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block font-bold">
-                            NHIS Enrollment
-                          </span>
-                          <span className="px-2 py-0.5 rounded border bg-emerald-50 text-emerald-600 border-emerald-100 text-[9px] font-mono font-bold uppercase">
-                            Insurance
-                          </span>
-                        </div>
-                        <h3 className="text-3xl font-serif font-bold text-slate-800">
-                          {summary.healthIndicators.nhisEnrolledCount.toLocaleString()}
-                        </h3>
-                        <p className="text-xs text-slate-500 font-light">
-                          Verified enrollment under the National Health Insurance Scheme, including{" "}
-                          <span className="text-amber-500 font-bold font-mono">
-                            {summary.healthIndicators.nhisSeniorPlanCount}
-                          </span>{" "}
-                          elderly citizens on the Senior Medical Welfare Plan.
-                        </p>
-                      </div>
-                      <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200/40">
-                        <div
-                          className="bg-emerald-500 h-full rounded-full"
-                          style={{
-                            width: `${Math.round(
-                              (summary.healthIndicators.nhisEnrolledCount / summary.healthIndicators.totalCitizensProfiled) * 100
-                            )}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Maternal Care */}
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-6 flex flex-col justify-between shadow-xs h-[200px]">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center select-none">
-                          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block font-bold">
-                            Maternal & Child Health
-                          </span>
-                          <span className="px-2 py-0.5 rounded border bg-blue-50 text-blue-600 border-blue-100 text-[9px] font-mono font-bold uppercase">
-                            Clinical
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <span className="text-[9px] text-slate-400 font-mono block">PREGNANT COUNT</span>
-                            <span className="text-2xl font-bold text-pink-500">
-                              {summary.healthIndicators.pregnantCount}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-[9px] text-slate-400 font-mono block">EXPECTANT PARENTS</span>
-                            <span className="text-2xl font-bold text-blue-500">
-                              {summary.healthIndicators.expectantParents}
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-slate-500 font-light">
-                          Childhood immunizations fully completed for{" "}
-                          <span className="text-emerald-500 font-bold font-mono">
-                            {summary.healthIndicators.vaccinationComplete}
-                          </span>{" "}
-                          registered infants.
-                        </p>
-                      </div>
-                      <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200/40">
-                        <div
-                          className="bg-blue-500 h-full rounded-full"
-                          style={{
-                            width: `${Math.round(
-                              (summary.healthIndicators.vaccinationComplete / summary.healthIndicators.totalCitizensProfiled) * 100
-                            )}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Chronic Registers */}
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-6 flex flex-col justify-between shadow-xs h-[200px]">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center select-none">
-                          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block font-bold">
-                            Special Care Registry
-                          </span>
-                          <span className="px-2 py-0.5 rounded border bg-red-50 text-red-655 border-red-100 text-[9px] font-mono font-bold uppercase">
-                            Special Needs
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <span className="text-[9px] text-slate-400 font-mono block">CARDIAC REGISTRY</span>
-                            <span className="text-2xl font-bold text-rose-500">
-                              {summary.healthIndicators.hypertensionDiabetesCount}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-[9px] text-slate-400 font-mono block">GENOTYPE LOGS</span>
-                            <span className="text-2xl font-bold text-amber-500">
-                              {summary.healthIndicators.bloodGroupRecorded}
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-slate-500 font-light">
-                          Active special care logs created for{" "}
-                          <span className="text-rose-500 font-bold font-mono">
-                            {summary.healthIndicators.chronicIllnessCount}
-                          </span>{" "}
-                          citizens on chronic disease monitoring.
-                        </p>
-                      </div>
-                      <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200/40">
-                        <div
-                          className="bg-rose-500 h-full rounded-full"
-                          style={{
-                            width: `${Math.round(
-                              (summary.healthIndicators.chronicIllnessCount / summary.healthIndicators.totalCitizensProfiled) * 100
-                            )}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quality Report panel */}
-                  <div className="bg-white border border-slate-200/60 p-6 rounded-3xl shadow-xs space-y-4">
-                    <div className="flex items-center gap-2 select-none">
-                      <Heart className="w-4 h-4 text-rose-500" />
-                      <h4 className="text-xs font-mono font-bold text-slate-800 uppercase tracking-widest">
-                        Welfare Profiling Quality Report
-                      </h4>
-                    </div>
-                    <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
-                      Welfare metrics are reconciled against primary healthcare records, local government clinics, and field-officer logs.
-                      Reconcile active senior welfare accounts during regular audits.
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono border-t border-slate-100 pt-4">
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-150 flex justify-between items-center">
-                        <span className="text-[10px] text-slate-400 font-bold">TOTAL PROFILED:</span>
-                        <span className="font-bold text-slate-800">
-                          {summary.healthIndicators.totalCitizensProfiled}
-                        </span>
-                      </div>
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-150 flex justify-between items-center">
-                        <span className="text-[10px] text-slate-400 font-bold">IMMUNIZATION RATE:</span>
-                        <span className="font-bold text-emerald-600">{vaccinationRatePercent}%</span>
-                      </div>
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-150 flex justify-between items-center">
-                        <span className="text-[10px] text-slate-400 font-bold">CHRONIC WATCH:</span>
-                        <span className="font-bold text-rose-500">
-                          {summary.healthIndicators.chronicIllnessCount}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              {/* ==================== TAB: HEALTH DOMAIN ==================== */}
+              {(activeTab === "health" || (activeTab as any) === "health_domain") && (
+                <HealthDomainTab
+                  summary={summary}
+                  filters={domainFilters}
+                  onFilterChange={handleDomainFilterChange}
+                  onResetFilters={handleResetDomainFilters}
+                />
               )}
 
-              {/* ==================== TAB 4: EDUCATION LIFECYCLE ==================== */}
-              {activeTab === "education" && summary && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-                      <div>
-                        <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">Foundational Education</span>
-                        <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                          {(summary.byCohort.find((c) => c.cohortName.toLowerCase().includes("foundational"))?.totalCitizens || 0).toLocaleString()}
-                        </h3>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-400">Ages 6 - 11 Cohort</span>
-                    </div>
-
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-                      <div>
-                        <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">Secondary Education</span>
-                        <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                          {(summary.byCohort.find((c) => c.cohortName.toLowerCase().includes("secondary"))?.totalCitizens || 0).toLocaleString()}
-                        </h3>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-400">Ages 12 - 18 Cohort</span>
-                    </div>
-
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-                      <div>
-                        <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">Higher Education</span>
-                        <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                          {(summary.byCohort.find((c) => c.cohortName.toLowerCase().includes("higher"))?.totalCitizens || 0).toLocaleString()}
-                        </h3>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-400">Ages 19 - 26 Cohort</span>
-                    </div>
-                  </div>
-
-                  <WidgetPanel title="Education Milestones & Enrollment Rates" icon={Database} className="h-[320px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={[
-                          {
-                            name: "Foundational",
-                            Total: summary.byCohort.find((c) => c.cohortName.toLowerCase().includes("foundational"))?.totalCitizens || 0,
-                            Completed: summary.byCohort.find((c) => c.cohortName.toLowerCase().includes("foundational"))?.citizensWithAnyMilestoneCompleted || 0,
-                          },
-                          {
-                            name: "Secondary",
-                            Total: summary.byCohort.find((c) => c.cohortName.toLowerCase().includes("secondary"))?.totalCitizens || 0,
-                            Completed: summary.byCohort.find((c) => c.cohortName.toLowerCase().includes("secondary"))?.citizensWithAnyMilestoneCompleted || 0,
-                          },
-                          {
-                            name: "Higher Ed",
-                            Total: summary.byCohort.find((c) => c.cohortName.toLowerCase().includes("higher"))?.totalCitizens || 0,
-                            Completed: summary.byCohort.find((c) => c.cohortName.toLowerCase().includes("higher"))?.citizensWithAnyMilestoneCompleted || 0,
-                          },
-                        ]}
-                        margin={{ top: 10, right: 10, left: 10, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                        <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
-                        <YAxis stroke="#94a3b8" fontSize={10} />
-                        <Tooltip contentStyle={{ backgroundColor: "white", borderColor: "#e2e8f0", borderRadius: 12, fontSize: 10 }} />
-                        <Legend wrapperStyle={{ fontSize: 10 }} />
-                        <Bar name="Total Enrolled" dataKey="Total" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                        <Bar name="Milestones Met" dataKey="Completed" fill="#10b981" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </WidgetPanel>
-                </div>
+              {/* ==================== TAB: EDUCATION DOMAIN ==================== */}
+              {activeTab === "education" && (
+                <EducationDomainTab
+                  summary={summary}
+                  filters={domainFilters}
+                  onFilterChange={handleDomainFilterChange}
+                  onResetFilters={handleResetDomainFilters}
+                />
               )}
 
-              {/* ==================== TAB 5: HR & JOBS ==================== */}
-              {activeTab === "hr" && summary && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-                      <div>
-                        <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">Employed Citizens</span>
-                        <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                          {summary.byEmploymentStatus
-                            .filter((e) => e.employmentStatus === "employed")
-                            .reduce((acc, curr) => acc + curr.citizenCount, 0)
-                            .toLocaleString()}
-                        </h3>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-400">Formal & Contract employment</span>
-                    </div>
-
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-                      <div>
-                        <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">Business Owners</span>
-                        <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                          {summary.byEmploymentStatus
-                            .filter((e) => e.employmentStatus === "business_owner")
-                            .reduce((acc, curr) => acc + curr.citizenCount, 0)
-                            .toLocaleString()}
-                        </h3>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-400">Self-employed & SMEs</span>
-                    </div>
-
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-                      <div>
-                        <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">Unemployed</span>
-                        <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                          {summary.byEmploymentStatus
-                            .filter((e) => e.employmentStatus === "unemployed")
-                            .reduce((acc, curr) => acc + curr.citizenCount, 0)
-                            .toLocaleString()}
-                        </h3>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-400">Actively seeking opportunities</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <WidgetPanel title="Employment Sector Distribution" icon={Briefcase} className="h-[320px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={Object.entries(
-                            summary.byEmploymentStatus.reduce((acc, curr) => {
-                              const sector = curr.industrySector || "unspecified";
-                              acc[sector] = (acc[sector] || 0) + curr.citizenCount;
-                              return acc;
-                            }, {} as Record<string, number>)
-                          ).map(([sector, count]) => ({
-                            sector: sector.charAt(0).toUpperCase() + sector.slice(1).replace("_", " "),
-                            Count: count,
-                          }))}
-                          margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                          <XAxis dataKey="sector" stroke="#94a3b8" fontSize={9} dy={10} />
-                          <YAxis stroke="#94a3b8" fontSize={10} />
-                          <Tooltip contentStyle={{ backgroundColor: "#fff", borderColor: "#e2e8f0", borderRadius: 12, fontSize: 10 }} />
-                          <Bar name="Citizens" dataKey="Count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </WidgetPanel>
-
-                    <WidgetPanel title="Monthly Income Range" icon={Database} className="h-[320px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={Object.entries(
-                            summary.byEmploymentStatus.reduce((acc, curr) => {
-                              const income = curr.monthlyIncomeRange || "Unspecified";
-                              acc[income] = (acc[income] || 0) + curr.citizenCount;
-                              return acc;
-                            }, {} as Record<string, number>)
-                          ).map(([income, count]) => ({
-                            income: income.replace("_", " "),
-                            Count: count,
-                          }))}
-                          margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                          <XAxis dataKey="income" stroke="#94a3b8" fontSize={9} dy={10} />
-                          <YAxis stroke="#94a3b8" fontSize={10} />
-                          <Tooltip contentStyle={{ backgroundColor: "#fff", borderColor: "#e2e8f0", borderRadius: 12, fontSize: 10 }} />
-                          <Bar name="Citizens" dataKey="Count" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </WidgetPanel>
-                  </div>
-                </div>
+              {/* ==================== TAB: HR & JOBS (INCORPORATING BUSINESS AFFAIRS) ==================== */}
+              {activeTab === "hr" && (
+                <HrJobsDomainTab
+                  summary={summary}
+                  filters={domainFilters}
+                  onFilterChange={handleDomainFilterChange}
+                  onResetFilters={handleResetDomainFilters}
+                />
               )}
 
-              {/* ==================== TAB 6: BUSINESS AFFAIRS ==================== */}
-              {activeTab === "business" && summary && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div className="bg-white border border-slate-200/60 rounded-3xl p-6 shadow-xs space-y-4">
-                    <div className="flex items-center gap-2 select-none">
-                      <Building2 className="w-5 h-5 text-blue-600" />
-                      <h4 className="text-sm font-mono font-bold text-slate-800 uppercase tracking-widest">
-                        Business & Corporate Affairs Domain
-                      </h4>
-                    </div>
-                    <p className="text-xs text-slate-500 max-w-xl leading-relaxed">
-                      Welfare allocations and SME grants are calculated based on registered business counts and industry classifications.
-                    </p>
-
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse text-xs">
-                        <thead>
-                          <tr className="border-b border-slate-200/80 bg-slate-50/50 text-[9px] font-mono text-slate-400 uppercase tracking-wider">
-                            <th className="py-3 px-4 font-bold">Industry Sector</th>
-                            <th className="py-3 px-4 font-bold">Monthly Income Range</th>
-                            <th className="py-3 px-4 font-bold">Employment Status</th>
-                            <th className="py-3 px-4 font-bold text-right">Profiled SMEs</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 text-slate-600">
-                          {summary.byEmploymentStatus
-                            .filter((e) => e.employmentStatus === "business_owner")
-                            .map((item, idx) => (
-                              <tr key={idx} className="hover:bg-slate-50/40">
-                                <td className="py-2.5 px-4 font-semibold text-slate-800">
-                                  {item.industrySector ? item.industrySector.replace("_", " ").toUpperCase() : "GENERAL RETAIL"}
-                                </td>
-                                <td className="py-2.5 px-4 font-mono">{item.monthlyIncomeRange || "N/A"}</td>
-                                <td className="py-2.5 px-4 uppercase font-mono text-[9px] text-slate-400">
-                                  {item.employmentStatus}
-                                </td>
-                                <td className="py-2.5 px-4 text-right font-mono font-bold text-blue-600">
-                                  {item.citizenCount.toLocaleString()}
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ==================== TAB 7: PENSION ==================== */}
-              {activeTab === "pension" && summary && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-                      <div>
-                        <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">Pre-Retirement</span>
-                        <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                          {(summary.byCohort.find((c) => c.cohortName.toLowerCase().includes("pre-retirement"))?.totalCitizens || 0).toLocaleString()}
-                        </h3>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-400">Ages 49 - 54 Cohort</span>
-                    </div>
-
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-                      <div>
-                        <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">Active Aging</span>
-                        <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                          {(summary.byCohort.find((c) => c.cohortName.toLowerCase().includes("active aging"))?.totalCitizens || 0).toLocaleString()}
-                        </h3>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-400">Ages 55 - 60 Cohort</span>
-                    </div>
-
-                    <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-                      <div>
-                        <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">Elderly Care</span>
-                        <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                          {(summary.byCohort.find((c) => c.cohortName.toLowerCase().includes("elderly care"))?.totalCitizens || 0).toLocaleString()}
-                        </h3>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-400">Ages 61+ Cohort</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-white border border-slate-200/60 p-6 rounded-3xl shadow-xs space-y-4">
-                    <div className="flex items-center gap-2 select-none">
-                      <Heart className="w-5 h-5 text-red-500" />
-                      <h4 className="text-sm font-mono font-bold text-slate-800 uppercase tracking-widest">
-                        Elderly Medical Senior Plan Enrolment
-                      </h4>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs font-mono">
-                      <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl flex justify-between items-center">
-                        <span className="text-slate-400">NHIS SENIOR PLAN ACTIVE:</span>
-                        <span className="text-xl font-bold text-emerald-600">
-                          {summary.healthIndicators.nhisSeniorPlanCount.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl flex justify-between items-center">
-                        <span className="text-slate-400">ELDERLY VACCINATIONS RECORDED:</span>
-                        <span className="text-xl font-bold text-blue-600">
-                          {summary.healthIndicators.vaccinationComplete.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              {/* ==================== TAB: PENSION DOMAIN ==================== */}
+              {activeTab === "pension" && (
+                <PensionDomainTab
+                  summary={summary}
+                  filters={domainFilters}
+                  onFilterChange={handleDomainFilterChange}
+                  onResetFilters={handleResetDomainFilters}
+                />
               )}
 
               {/* ==================== TAB 8: FIELD OFFICERS & JURISDICTIONS ==================== */}
@@ -1786,5 +1559,19 @@ export default function AdminPage() {
         onClose={() => setSelectedCitizenCode(null)}
       />
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        </div>
+      }
+    >
+      <AdminDashboardContent />
+    </Suspense>
   );
 }

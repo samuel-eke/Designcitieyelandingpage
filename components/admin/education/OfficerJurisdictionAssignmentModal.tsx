@@ -275,9 +275,16 @@ export function OfficerJurisdictionAssignmentModal({
                   <span className="font-semibold text-slate-800">{selectedOfficerObj.fullName}</span>
                   <span className="text-slate-400 ml-1.5 font-mono text-[10px]">({selectedOfficerObj.citizenCode})</span>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold text-[9px] uppercase border border-blue-100">
-                  {selectedOfficerObj.specialty || selectedOfficerObj.role}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  {selectedOfficerObj.employment?.currentlyEmployed === true && (
+                    <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold text-[9px] border border-emerald-100">
+                      {selectedOfficerObj.employment.role || "Employed"}
+                    </span>
+                  )}
+                  <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold text-[9px] uppercase border border-blue-100">
+                    {selectedOfficerObj.specialty || selectedOfficerObj.role}
+                  </span>
+                </div>
               </div>
             )}
           </div>

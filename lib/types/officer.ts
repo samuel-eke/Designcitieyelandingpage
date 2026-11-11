@@ -3,6 +3,13 @@
  * Represents registered field officers returned to administrators.
  */
 
+export interface OfficerEmployment {
+  currentlyEmployed: boolean;
+  role?: string | null;
+  workplaceName?: string | null;
+  workplaceAddress?: string | null;
+}
+
 export interface OfficerSummary {
   id: number;
   citizenCode: string;
@@ -23,6 +30,7 @@ export interface OfficerSummary {
   dateOfBirth?: string | null;
   createdAt: string;
   updatedAt?: string | null;
+  employment?: OfficerEmployment | null;
 }
 
 export interface OfficerFilterParams {

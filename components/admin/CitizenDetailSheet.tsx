@@ -21,6 +21,7 @@ import {
   HealthRecord,
   EducationRecord,
 } from "@/lib/hooks/useAnalytics";
+import { useAdminCitizenLifecycle } from "@/lib/hooks/useAdminCitizenLifecycle";
 import { apiClient } from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -38,6 +39,11 @@ import {
   Trash2,
   Save,
   X,
+  AlertTriangle,
+  ShieldAlert,
+  Info,
+  HeartPulse,
+  Building2,
 } from "lucide-react";
 import { AcademicProgressionTimeline } from "@/components/dashboard/education/AcademicProgressionTimeline";
 import { VocationalPortalCard } from "@/components/dashboard/vocational/VocationalPortalCard";
@@ -54,7 +60,28 @@ export function CitizenDetailSheet({
   onClose,
 }: CitizenDetailSheetProps) {
   const queryClient = useQueryClient();
-  const { data: profile, isLoading, error } = useCitizenDetail(citizenCode);
+  const {
+    data: lifecycleData,
+    isLoading: isLifecycleLoading,
+    error: lifecycleError,
+  } = useAdminCitizenLifecycle(citizenCode);
+  const { data: analyticsProfile, isLoading: isAnalyticsLoading } = useCitizenDetail(citizenCode);
+
+  const isLoading = isLifecycleLoading && !lifecycleData && !analyticsProfile;
+  const error = lifecycleError;
+
+  // Merge backend lifecycle endpoint data with legacy analytics attributes
+  const profile = React.useMemo(() => {
+    if (!lifecycleData && !analyticsProfile) return null;
+    return {
+      ...analyticsProfile,
+      ...lifecycleData,
+      fullName:
+        lifecycleData?.fullName ||
+        `${lifecycleData?.firstName || analyticsProfile?.firstName || ""} ${lifecycleData?.lastName || analyticsProfile?.lastName || ""}`.trim(),
+    };
+  }, [lifecycleData, analyticsProfile]);
+
   const [showEmpty, setShowEmpty] = useState(false);
 
   // Authentication & Permissions State
@@ -95,6 +122,7 @@ export function CitizenDetailSheet({
       toast.success("Profile updated successfully!");
       setIsEditingProfile(false);
       queryClient.invalidateQueries({ queryKey: ["analytics", "citizens", "detail", citizenCode] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "citizens", "lifecycle", citizenCode] });
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to update profile.");
     }
@@ -366,6 +394,69 @@ export function CitizenDetailSheet({
               </button>
             </div>
 
+            {/* Critical Social Welfare Alert: Senior Care Home Placement */}
+            {profile.interestedInAdultCareHome && (
+              <div className="p-4 bg-rose-50/90 border border-rose-200 rounded-2xl flex items-start gap-3.5 text-rose-900 shadow-xs animate-in fade-in">
+                <div className="p-2 bg-rose-100 text-rose-600 rounded-xl shrink-0 mt-0.5">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">
+                      Critical Social Welfare Action Required
+                    </span>
+                  </div>
+                  <h5 className="text-sm font-bold text-rose-950">
+                    Senior Adult Care Home Placement Requested
+                  </h5>
+                  <p className="text-xs text-rose-700 leading-relaxed">
+                    This senior citizen has formally requested placement in a government-assisted residential Adult Care Home.
+                    {profile.pensionProviderName && (
+                      <span className="block mt-1 font-mono text-[11px] text-rose-900 font-medium">
+                        Pension Fund Administrator (PFA): <strong>{profile.pensionProviderName}</strong>
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Age-18 Hard NIN Gate Enforced Banner */}
+            {profile.isNinRequired && (
+              <div className="p-3.5 bg-amber-50/90 border border-amber-200 rounded-2xl flex items-start gap-3 text-amber-900 shadow-xs animate-in fade-in">
+                <div className="p-1.5 bg-amber-100 text-amber-700 rounded-lg shrink-0 mt-0.5">
+                  <ShieldAlert className="w-4 h-4" />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
+                    Age-18 Hard NIN Enforcement Gate
+                  </span>
+                  <p className="text-xs text-amber-900 leading-relaxed">
+                    {profile.transitionMessage ||
+                      "Adult Action Required: Citizen is 18 or older and has not registered an individual 11-digit Adult NIN. Adult records are strictly locked."}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Age 16-17 Grace Period Banner */}
+            {profile.isInGracePeriod && (
+              <div className="p-3.5 bg-blue-50/90 border border-blue-200 rounded-2xl flex items-start gap-3 text-blue-900 shadow-xs animate-in fade-in">
+                <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg shrink-0 mt-0.5">
+                  <Info className="w-4 h-4" />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
+                    Age-16 Milestone Transition (Grace Period)
+                  </span>
+                  <p className="text-xs text-blue-900 leading-relaxed">
+                    {profile.transitionMessage ||
+                      "Citizen has reached transition age (in 2-year grace period until age 18 to register adult identity)."}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Profile Content Tabs */}
             <Tabs defaultValue="identity" className="flex-1 flex flex-col overflow-hidden">
               <TabsList className="bg-slate-50 border border-slate-200/60 p-[3px] rounded-xl w-full flex justify-between gap-1 shrink-0 h-auto">
@@ -404,6 +495,10 @@ export function CitizenDetailSheet({
                 <TabsContent value="identity" className="space-y-4 outline-none">
                   <SectionCard title="Primary Identity">
                     <DataField label="Citizen Code" value={profile.citizenCode} />
+                    <DataField label="National Identity No (NIN)" value={profile.nin || "Not Registered"} />
+                    {profile.parentNin && (
+                      <DataField label="Parent / Guardian NIN" value={profile.parentNin} />
+                    )}
                     <DataField label="First Name" fieldName="firstName" value={profile.firstName} />
                     <DataField label="Middle Name" fieldName="middleName" value={profile.middleName} />
                     <DataField label="Last Name" fieldName="lastName" value={profile.lastName} />
@@ -412,10 +507,14 @@ export function CitizenDetailSheet({
                     <DataField label="Gender" fieldName="gender" value={profile.gender} />
                     <DataField label="Date of Birth" fieldName="dateOfBirth" value={profile.dateOfBirth} />
                     <DataField label="Age" value={profile.age} />
+                    {profile.dependentsCount !== undefined && profile.dependentsCount > 0 && (
+                      <DataField label="Linked Minor Dependents" value={profile.dependentsCount} />
+                    )}
                   </SectionCard>
 
                   <SectionCard title="Cohort Placement & Lifecycle">
                     <DataField label="Current Cohort" value={profile.cohortName} />
+                    <DataField label="Milestone Lifecycle Status" value={profile.transitionMessage || (profile.isAdult ? "Adult Citizen" : "Minor Account")} />
                     <DataField label="Age At Registration" value={profile.ageAtRegistration} />
                     <DataField label="Cohort Transitioned At" value={profile.cohortLastTransitionedAt} />
                     <DataField label="Profile Created" value={profile.registeredAt} />
@@ -430,6 +529,12 @@ export function CitizenDetailSheet({
                     <DataField label="Residential Address" fieldName="address" value={profile.address} />
                     <DataField label="Hometown" fieldName="hometown" value={profile.hometown} />
                     <DataField label="Household Size" fieldName="householdSize" value={profile.householdSize} />
+                    <DataField label="Marital Status" fieldName="maritalStatus" value={profile.maritalStatus} />
+                    {profile.gender?.toUpperCase() === "MALE" && profile.maritalStatus?.toUpperCase() === "MARRIED" && (
+                      <DataField label="Number of Wives (Polygamous)" fieldName="numberOfWives" value={profile.numberOfWives ?? 1} />
+                    )}
+                    <DataField label="Has Children" value={profile.hasChildren} />
+                    <DataField label="Number of Children" value={profile.numberOfChildren} />
                   </SectionCard>
                 </TabsContent>
 
@@ -481,7 +586,12 @@ export function CitizenDetailSheet({
                   </SectionCard>
 
                   <SectionCard title="Higher Education (Ages 19 - 26)">
-                    <DataField label="Tertiary Institution Name" value={profile.tertiaryInstitutionName} />
+                    <DataField label="Tertiary Institution Name" value={profile.tertiaryInstitutionName || profile.universityAttended} />
+                    <DataField label="Institution Classification" value={profile.tertiaryInstitutionType} />
+                    <DataField label="Course of Study" value={profile.tertiaryCourseOfStudy || profile.courseOfStudy} />
+                    <DataField label="Current Academic Level" value={profile.tertiaryCurrentLevel} />
+                    <DataField label="Current Semester" value={profile.tertiaryCurrentSemester} />
+                    <DataField label="Academic Session" value={profile.tertiaryAcademicSession} />
                     <DataField label="Institution Code" value={profile.tertiaryInstitutionCode} />
                     <DataField label="NELFUND Student Loan Recipient" value={profile.nelfundStudentLoan} />
                     <DataField label="Cumulative GPA (CGPA)" value={profile.cgpa} />
@@ -495,7 +605,6 @@ export function CitizenDetailSheet({
                     <DataField label="University Attended" value={profile.universityAttended} />
                     <DataField label="Degree Attained" value={profile.degreeAttained} />
                     <DataField label="Year of Graduation" value={profile.yearOfGraduation} />
-                    <DataField label="Course of Study" value={profile.courseOfStudy} />
                   </SectionCard>
 
                   {/* Logged Education Records */}
@@ -643,17 +752,32 @@ export function CitizenDetailSheet({
 
                 {/* 3. ECONOMY & WORKFORCE */}
                 <TabsContent value="work" className="space-y-4 outline-none">
+                  <SectionCard title="Formal Enterprise & CAC Registration">
+                    <DataField label="Has Business" value={profile.hasBusiness} />
+                    <DataField label="Business Name" value={profile.businessName || profile.nameOfEmployerBusiness} />
+                    <DataField label="Nature of Business" value={profile.businessNature || profile.natureOfBusinessJob} />
+                    <DataField label="CAC Registered Enterprise" value={profile.isCacRegistered} />
+                    <DataField label="CAC Registration No (RC / BN)" value={profile.cacRegistrationNumber || profile.businessRegistrationNumber} />
+                  </SectionCard>
+
+                  <SectionCard title="Vocational Apprenticeship & Technical Training">
+                    <DataField label="Enrolled in Vocational Program" value={profile.isUndergoingVocationalTraining} />
+                    <DataField label="Vocational Trade Kind" value={profile.tradeSkillKind} />
+                    <DataField label="Training Center Name" value={profile.trainingCenterName} />
+                    <DataField label="Training Center Location" value={profile.trainingCenterLocation} />
+                    <DataField label="Training Duration (Months)" value={profile.trainingDurationMonths} />
+                  </SectionCard>
+
                   <SectionCard title="Workforce Integration (Ages 27 - 32)">
                     <DataField label="Current Employment Status" value={profile.currentEmploymentStatus} />
                     <DataField label="Detailed Employment Status" value={profile.employmentStatus} />
+                    <DataField label="Employer Name" value={profile.employerName || profile.nameOfEmployerBusiness} />
+                    <DataField label="Employer Address" value={profile.employerAddress || profile.placeOfEmploymentBusiness} />
+                    <DataField label="Nature of Employment" value={profile.natureOfEmployment || profile.natureOfBusinessJob} />
                     <DataField label="Monthly Income Range" value={profile.monthlyIncomeRange} />
                     <DataField label="Industry Sector" value={profile.industrySector} />
-                    <DataField label="Business Name / Employer" value={profile.nameOfEmployerBusiness} />
-                    <DataField label="Place of Employment" value={profile.placeOfEmploymentBusiness} />
-                    <DataField label="Nature of Job / Business" value={profile.natureOfBusinessJob} />
                     <DataField label="Tax Identification No (TIN)" value={profile.tinNumber} />
                     <DataField label="Bank Verification No (BVN)" value={profile.bvnNumber} />
-                    <DataField label="Business Registration Number" value={profile.businessRegistrationNumber} />
                     <DataField label="NYSC Discharge Certificate" value={profile.nyscDischargeCert} />
                   </SectionCard>
 
@@ -675,6 +799,9 @@ export function CitizenDetailSheet({
                   </SectionCard>
 
                   <SectionCard title="Pre-Retirement & Aging (Ages 49 - 60)">
+                    <DataField label="Retired Status" value={profile.isRetired} />
+                    <DataField label="Pension Administrator (PFA)" value={profile.pensionProviderName} />
+                    <DataField label="Adult Care Home Placement Requested" value={profile.interestedInAdultCareHome ? "YES — REQUESTED" : "No"} />
                     <DataField label="Expected Retirement Age" value={profile.expectedRetirementAge} />
                     <DataField label="Years of Service" value={profile.yearsOfService} />
                     <DataField label="Retirement Livelihood Plan" value={profile.retirementLivelihoodPlan} />
@@ -703,6 +830,36 @@ export function CitizenDetailSheet({
 
                 {/* 4. HEALTH & SOCIAL WELFARE */}
                 <TabsContent value="health" className="space-y-4 outline-none">
+                  {/* Decoupled Maternal Antenatal Care Tracker (Females) */}
+                  {(profile.gender?.toUpperCase() === "FEMALE" || profile.isPregnant) && (
+                    <SectionCard title="Maternal Health & Antenatal Care (ANC)">
+                      <DataField label="Currently Pregnant" value={profile.isPregnant} />
+                      <DataField label="Enrolled in Antenatal Care" value={profile.hasStartedAntenatal} />
+                      <DataField label="Antenatal Hospital Name" value={profile.antenatalHospitalName} />
+                      <DataField label="Estimated Due Date (EDD)" value={profile.estimatedDueDate} />
+                      <DataField label="Gestational Trimester" value={profile.trimester ? `Trimester ${profile.trimester}` : null} />
+                      <DataField label="High-Risk Pregnancy Alert" value={profile.highRiskPregnancyFlag ? "YES — HIGH RISK" : "Normal"} />
+                      <DataField label="Completed ANC Visits" value={profile.ancVisitsCount} />
+                      <DataField label="Maternal Clinical Notes" value={profile.maternalNotes} />
+                    </SectionCard>
+                  )}
+
+                  {/* Critical Senior Citizen Welfare & Care Home Section */}
+                  <SectionCard title="Senior Citizen Welfare & Care Home Placement">
+                    <DataField label="Retired Status" value={profile.isRetired} />
+                    <DataField label="Pension Administrator (PFA)" value={profile.pensionProviderName} />
+                    <DataField label="Adult Care Home Placement Requested" value={profile.interestedInAdultCareHome ? "YES — REQUESTED" : "No"} />
+                  </SectionCard>
+
+                  {/* Health Insurance Coverage */}
+                  <SectionCard title="Health Insurance Coverage (HMO & NHIS)">
+                    <DataField label="HMO Insurance Enrolled" value={profile.hasHmo} />
+                    <DataField label="HMO Provider Name" value={profile.hmoProviderName} />
+                    <DataField label="HMO Policy Number" value={profile.hmoPolicyNumber} />
+                    <DataField label="NHIS Enrolled" value={profile.nhisEnrolled} />
+                    <DataField label="NHIS Senior Plan Active" value={profile.nhisSeniorPlan} />
+                  </SectionCard>
+
                   <SectionCard title="Primary Health Indicators">
                     <DataField label="Blood Group" value={profile.bloodGroup} />
                     <DataField label="Blood Genotype" value={profile.bloodGenotype} />
@@ -711,11 +868,6 @@ export function CitizenDetailSheet({
                     <DataField label="Hypertension & Diabetes Flag" value={profile.hypertensionDiabetesFlag} />
                     <DataField label="Chronic Health Registry Name" value={profile.chronicHealthRegistry} />
                     <DataField label="Cardio Screening Date" value={profile.cardioScreeningDate} />
-                  </SectionCard>
-
-                  <SectionCard title="National Health Insurance Scheme (NHIS)">
-                    <DataField label="NHIS Enrolled" value={profile.nhisEnrolled} />
-                    <DataField label="NHIS Senior Plan Active" value={profile.nhisSeniorPlan} />
                   </SectionCard>
 
                   <SectionCard title="Legacy Planning (Ages 45 - 48)">

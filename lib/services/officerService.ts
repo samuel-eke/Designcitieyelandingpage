@@ -222,6 +222,7 @@ export async function getAllCitizens(
   const response = await apiClient.get<any>(
     `/api/field-officers/citizens?${queryParams.toString()}`
   );
+  console.log(response.data)
   return response.data;
 }
 

@@ -4,12 +4,8 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   UserCheck,
-  Shield,
   Stethoscope,
   GraduationCap,
-  Briefcase,
-  Building,
-  Heart,
   Eye,
   EyeOff,
   CheckCircle2,
@@ -135,9 +131,6 @@ export function OfficerSignupForm({ onSwitchToLogin }: OfficerSignupFormProps) {
   const specialties = [
     { id: "medical", label: "Health & Care", icon: Stethoscope, color: "emerald", desc: "Immunization, maternal & clinical logs" },
     { id: "education", label: "Education", icon: GraduationCap, color: "blue", desc: "Schools, academic grades & attendance" },
-    { id: "hr", label: "Workforce & HR", icon: Briefcase, color: "purple", desc: "Employment status & skill census" },
-    { id: "corporate_affairs", label: "Business Affairs", icon: Building, color: "amber", desc: "SME registry & trade classifications" },
-    { id: "pension", label: "Pension & Elderly", icon: Heart, color: "rose", desc: "Pre-retirement & senior welfare" },
   ];
 
   if (registrationSuccess) {
@@ -200,7 +193,7 @@ export function OfficerSignupForm({ onSwitchToLogin }: OfficerSignupFormProps) {
           Register Field Officer Node
         </h3>
         <p className="text-xs text-slate-400 font-light">
-          Register your field officer profile to log socio-economic, health, and educational census data.
+          Register your field officer profile to log health and educational census data.
         </p>
       </div>
 
@@ -215,7 +208,7 @@ export function OfficerSignupForm({ onSwitchToLogin }: OfficerSignupFormProps) {
         <label className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider block">
           Domain Specialization *
         </label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {specialties.map((spec) => {
             const Icon = spec.icon;
             const isSelected = formData.specialty === spec.id;

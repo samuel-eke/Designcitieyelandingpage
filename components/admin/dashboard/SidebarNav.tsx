@@ -47,7 +47,7 @@ export function SidebarNav({
     }
     // Domain specific clearance for field officers
     if (roleLower === "field_officer_health") {
-      return ["overview", "registry", "health_domain"].includes(itemId);
+      return ["overview", "registry", "health_domain", "health"].includes(itemId);
     }
     if (roleLower === "field_officer_education") {
       return ["overview", "registry", "education"].includes(itemId);
@@ -72,7 +72,6 @@ export function SidebarNav({
         { id: "education", label: "Education", icon: GraduationCap },
         { id: "health_domain", label: "Health", icon: Activity },
         { id: "hr", label: "HR & Jobs", icon: Briefcase },
-        { id: "business", label: "Business Affairs", icon: Building },
         { id: "pension", label: "Pension", icon: Heart },
       ],
     },
