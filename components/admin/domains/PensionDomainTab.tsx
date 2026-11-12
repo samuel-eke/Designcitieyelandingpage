@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Heart, Shield, Home, Clock } from "lucide-react";
+import { Heart } from "lucide-react";
 import { DomainFilterBar } from "./DomainFilterBar";
 import { DomainDataTable } from "./DomainDataTable";
 import { PensionDetailDrawer } from "./drawer/PensionDetailDrawer";
@@ -29,6 +29,26 @@ export function PensionDomainTab({
     domain: "pension",
   });
 
+  const preRetirementCohort = summary?.byCohort.find(
+    (c: any) =>
+      c.cohortName.toLowerCase().includes("pre-retirement") ||
+      (c.minAge !== null && c.minAge >= 45 && c.minAge < 55)
+  );
+
+  const activeAgingCohort = summary?.byCohort.find(
+    (c: any) =>
+      c.cohortName.toLowerCase().includes("active aging") ||
+      c.cohortName.toLowerCase().includes("aging") ||
+      (c.minAge !== null && c.minAge >= 50 && (c.maxAge === null || c.maxAge <= 60))
+  );
+
+  const elderlyCareCohort = summary?.byCohort.find(
+    (c: any) =>
+      c.cohortName.toLowerCase().includes("elderly") ||
+      c.cohortName.toLowerCase().includes("senior") ||
+      (c.minAge !== null && c.minAge >= 60)
+  );
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* ================= TOP METRICS SECTION ================= */}
@@ -37,145 +57,54 @@ export function PensionDomainTab({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
               <div>
-                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">
-                  Pre-Retirement
+                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block truncate">
+                  {preRetirementCohort?.cohortName || "Pre-Retirement"}
                 </span>
                 <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                  {(
-                    summary.byCohort.find((c: any) =>
-                      c.cohortName.toLowerCase().includes("pre-retirement")
-                    )?.totalCitizens || 0
-                  ).toLocaleString()}
+                  {(preRetirementCohort?.totalCitizens || 0).toLocaleString()}
                 </h3>
               </div>
-              <span className="text-[9px] font-mono text-slate-400">Ages 49 - 54 Cohort</span>
-            </div>
-
-            <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">
-                  Active Aging
-                </span>
-                <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                  {(
-                    summary.byCohort.find((c: any) =>
-                      c.cohortName.toLowerCase().includes("active aging")
-                    )?.totalCitizens || 0
-                  ).toLocaleString()}
-                </h3>
-              </div>
-              <span className="text-[9px] font-mono text-slate-400">Ages 55 - 60 Cohort</span>
-            </div>
-
-            <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">
-                  Elderly Care
-                </span>
-                <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                  {(
-                    summary.byCohort.find((c: any) =>
-                      c.cohortName.toLowerCase().includes("elderly care")
-                    )?.totalCitizens || 0
-                  ).toLocaleString()}
-                </h3>
-              </div>
-              <span className="text-[9px] font-mono text-slate-400">Ages 61+ Cohort</span>
-            </div>
-          </div>
-
-          {/* Senior Citizen Social Welfare & Adult Care Home Banner */}
-          <div className="bg-rose-50/60 border border-rose-200/80 p-6 rounded-3xl shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5 select-none">
-                <div className="p-2 bg-rose-100 text-rose-600 rounded-xl">
-                  <Heart className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-mono font-bold text-rose-950 uppercase tracking-widest">
-                    Senior Welfare: State Adult Care Home Placement
-                  </h4>
-                  <p className="text-xs text-rose-700 font-sans mt-0.5">
-                    Priority social welfare interventions for vulnerable and retired seniors requiring residential care.
-                  </p>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-rose-700 bg-rose-100/90 px-3 py-1 rounded-full border border-rose-200">
-                PRD Module 3.2 Track E
+              <span className="text-[9px] font-mono text-slate-400">
+                {preRetirementCohort && preRetirementCohort.minAge != null && preRetirementCohort.maxAge != null
+                  ? `Ages ${preRetirementCohort.minAge} - ${preRetirementCohort.maxAge} Cohort`
+                  : preRetirementCohort && preRetirementCohort.minAge != null
+                  ? `Ages ${preRetirementCohort.minAge}+ Cohort`
+                  : "Ages 49 - 54 Cohort"}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
-              <div className="p-4 bg-white border border-rose-150 rounded-2xl flex flex-col justify-between">
-                <span className="text-slate-400 font-bold uppercase text-[10px]">Active Aging (55-60)</span>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="text-2xl font-bold text-slate-800">
-                    {(
-                      summary.byCohort.find((c: any) =>
-                        c.cohortName.toLowerCase().includes("active aging")
-                      )?.totalCitizens || 0
-                    ).toLocaleString()}
-                  </span>
-                  <span className="text-[10px] text-slate-400">citizens</span>
-                </div>
-                <span className="text-[9px] text-emerald-600 mt-2 font-sans font-medium">
-                  Eligible for Pre-Placement Assessment
+            <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
+              <div>
+                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block truncate">
+                  {activeAgingCohort?.cohortName || "Active Aging"}
                 </span>
+                <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
+                  {(activeAgingCohort?.totalCitizens || 0).toLocaleString()}
+                </h3>
               </div>
-
-              <div className="p-4 bg-white border border-rose-150 rounded-2xl flex flex-col justify-between">
-                <span className="text-slate-400 font-bold uppercase text-[10px]">Elderly Care (61+)</span>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="text-2xl font-bold text-rose-700">
-                    {(
-                      summary.byCohort.find((c: any) =>
-                        c.cohortName.toLowerCase().includes("elderly care")
-                      )?.totalCitizens || 0
-                    ).toLocaleString()}
-                  </span>
-                  <span className="text-[10px] text-slate-400">citizens</span>
-                </div>
-                <span className="text-[9px] text-rose-600 mt-2 font-sans font-medium">
-                  High Priority Social Care Cohort
-                </span>
-              </div>
-
-              <div className="p-4 bg-white border border-rose-150 rounded-2xl flex flex-col justify-between">
-                <span className="text-slate-400 font-bold uppercase text-[10px]">Pension Coverage (NHIS)</span>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="text-2xl font-bold text-emerald-600">
-                    {summary.healthIndicators.nhisSeniorPlanCount.toLocaleString()}
-                  </span>
-                  <span className="text-[10px] text-slate-400">enrolled</span>
-                </div>
-                <span className="text-[9px] text-slate-500 mt-2 font-sans font-medium">
-                  State Medical Plan Backed
-                </span>
-              </div>
+              <span className="text-[9px] font-mono text-slate-400">
+                {activeAgingCohort && activeAgingCohort.minAge != null && activeAgingCohort.maxAge != null
+                  ? `Ages ${activeAgingCohort.minAge} - ${activeAgingCohort.maxAge} Cohort`
+                  : activeAgingCohort && activeAgingCohort.minAge != null
+                  ? `Ages ${activeAgingCohort.minAge}+ Cohort`
+                  : "Ages 55 - 60 Cohort"}
+              </span>
             </div>
-          </div>
 
-          {/* NHIS Senior Plan Enrolment */}
-          <div className="bg-white border border-slate-200/60 p-6 rounded-3xl shadow-xs space-y-4">
-            <div className="flex items-center gap-2 select-none">
-              <Heart className="w-5 h-5 text-red-500" />
-              <h4 className="text-sm font-mono font-bold text-slate-800 uppercase tracking-widest">
-                Elderly Medical Senior Plan Enrolment
-              </h4>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs font-mono">
-              <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl flex justify-between items-center">
-                <span className="text-slate-400">NHIS SENIOR PLAN ACTIVE:</span>
-                <span className="text-xl font-bold text-emerald-600">
-                  {summary.healthIndicators.nhisSeniorPlanCount.toLocaleString()}
+            <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
+              <div>
+                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block truncate">
+                  {elderlyCareCohort?.cohortName || "Elderly Care"}
                 </span>
+                <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
+                  {(elderlyCareCohort?.totalCitizens || 0).toLocaleString()}
+                </h3>
               </div>
-              <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl flex justify-between items-center">
-                <span className="text-slate-400">ELDERLY VACCINATIONS RECORDED:</span>
-                <span className="text-xl font-bold text-blue-600">
-                  {summary.healthIndicators.vaccinationComplete.toLocaleString()}
-                </span>
-              </div>
+              <span className="text-[9px] font-mono text-slate-400">
+                {elderlyCareCohort && elderlyCareCohort.minAge != null
+                  ? `Ages ${elderlyCareCohort.minAge}+ Cohort`
+                  : "Ages 61+ Cohort"}
+              </span>
             </div>
           </div>
         </>
@@ -187,7 +116,7 @@ export function PensionDomainTab({
           <div className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-rose-600" />
             <h3 className="text-base font-bold text-slate-800">
-              Pension Registry & Care Home Placement Candidates
+              Pension & Retirement Citizen Registry
             </h3>
           </div>
           <span className="text-xs font-mono text-slate-500">

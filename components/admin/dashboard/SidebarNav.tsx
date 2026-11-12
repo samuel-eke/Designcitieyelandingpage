@@ -71,7 +71,7 @@ export function SidebarNav({
       items: [
         { id: "education", label: "Education", icon: GraduationCap },
         { id: "health_domain", label: "Health", icon: Activity },
-        { id: "hr", label: "HR & Jobs", icon: Briefcase },
+        { id: "hr", label: "Jobs and Business", icon: Briefcase },
         { id: "pension", label: "Pension", icon: Heart },
       ],
     },

@@ -33,6 +33,7 @@ import {
   Shield,
   Briefcase,
   Settings,
+  Calendar,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -44,6 +45,7 @@ import {
   usePublishContent,
   CitizenRegistryFilters,
 } from "@/lib/hooks/useAnalytics";
+import { useOfficers } from "@/lib/hooks/useOfficers";
 import { SidebarNav } from "@/components/admin/dashboard/SidebarNav";
 import { TopBar } from "@/components/admin/dashboard/TopBar";
 import { StatCard } from "@/components/admin/dashboard/StatCard";
@@ -74,10 +76,40 @@ import {
   Legend,
 } from "recharts";
 
+const AGE_GROUP_OPTIONS: ReadonlyArray<{
+  id: string;
+  label: string;
+  minAge?: number;
+  maxAge?: number;
+}> = [
+  { id: "all", label: "All Ages" },
+  { id: "0-5", label: "0 - 5", minAge: 0, maxAge: 5 },
+  { id: "6-10", label: "6 - 10", minAge: 6, maxAge: 10 },
+  { id: "11-15", label: "11 - 15", minAge: 11, maxAge: 15 },
+  { id: "16-20", label: "16 - 20", minAge: 16, maxAge: 20 },
+  { id: "21-25", label: "21 - 25", minAge: 21, maxAge: 25 },
+  { id: "26-30", label: "26 - 30", minAge: 26, maxAge: 30 },
+  { id: "31-35", label: "31 - 35", minAge: 31, maxAge: 35 },
+  { id: "36-40", label: "36 - 40", minAge: 36, maxAge: 40 },
+  { id: "41-45", label: "41 - 45", minAge: 41, maxAge: 45 },
+  { id: "46-50", label: "46 - 50", minAge: 46, maxAge: 50 },
+  { id: "51-55", label: "51 - 55", minAge: 51, maxAge: 55 },
+  { id: "56-60", label: "56 - 60", minAge: 56, maxAge: 60 },
+  { id: "61-65", label: "61 - 65", minAge: 61, maxAge: 65 },
+  { id: "66-70", label: "66 - 70", minAge: 66, maxAge: 70 },
+  { id: "71-75", label: "71 - 75", minAge: 71, maxAge: 75 },
+  { id: "76-80", label: "76 - 80", minAge: 76, maxAge: 80 },
+  { id: "81-85", label: "81 - 85", minAge: 81, maxAge: 85 },
+  { id: "86-90", label: "86 - 90", minAge: 86, maxAge: 90 },
+  { id: "91-95", label: "91 - 95", minAge: 91, maxAge: 95 },
+  { id: "96-100", label: "96 - 100", minAge: 96, maxAge: 100 },
+  { id: "100+", label: "100+", minAge: 101 },
+];
+
 function AdminDashboardContent() {
   const { user, accessToken, logout, adminLogin, loading, initializeAuth } = useAuthStore();
   const [role, setRole] = useState<string>("GUEST");
-  const [email, setEmail] = useState<string>("admin@citieye.gov.ng");
+  const [email, setEmail] = useState<string>("");
   const [isClient, setIsClient] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
 
@@ -124,7 +156,7 @@ function AdminDashboardContent() {
 
   const handleTabChange = (tab: any) => {
     const normalized: "overview" | "registry" | "health" | "education" | "hr" | "pension" | "officers" | "users" | "settings" =
-      tab === "health_domain" ? "health" : tab === "business" ? "hr" : tab;
+      tab === "health_domain" ? "health" : tab === "business" || tab === "jobs" ? "hr" : tab;
 
     if (normalized === activeTab) return;
 
@@ -150,7 +182,7 @@ function AdminDashboardContent() {
     if (tabParam) {
       if (tabParam === "health_domain" || tabParam === "health") {
         setActiveTab("health");
-      } else if (tabParam === "business" || tabParam === "hr") {
+      } else if (tabParam === "business" || tabParam === "hr" || tabParam === "jobs") {
         setActiveTab("hr");
       } else if (
         ["overview", "registry", "health", "education", "hr", "pension", "officers", "users", "settings"].includes(
@@ -292,6 +324,7 @@ function AdminDashboardContent() {
     page: 0,
     size: 10,
   });
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>("all");
 
   // Login form state
   const [adminCode, setAdminCode] = useState("");
@@ -358,6 +391,21 @@ function AdminDashboardContent() {
   }, [filters, globalSearch]);
 
   const { data: registry, isLoading: registryLoading } = useCitizenRegistry(registryFilters);
+
+  // Client-side age group filtering
+  const filteredRegistryContent = useMemo(() => {
+    if (!registry?.content) return [];
+    if (selectedAgeGroup === "all") return registry.content;
+    const group = AGE_GROUP_OPTIONS.find((g) => g.id === selectedAgeGroup);
+    if (!group) return registry.content;
+    return registry.content.filter((citizen) => {
+      if (citizen.age === null || citizen.age === undefined) return false;
+      if (group.minAge !== undefined && citizen.age < group.minAge) return false;
+      if (group.maxAge !== undefined && citizen.age > group.maxAge) return false;
+      return true;
+    });
+  }, [registry?.content, selectedAgeGroup]);
+  const { data: officersList, isLoading: officersLoading } = useOfficers();
   const { mutate: refreshViews, isPending: refreshPending } = useRefreshAnalytics();
 
   const handleSignOut = () => {
@@ -474,6 +522,7 @@ function AdminDashboardContent() {
       page: 0,
       size: 10,
     });
+    setSelectedAgeGroup("all");
     setGlobalSearch("");
   };
 
@@ -707,10 +756,15 @@ function AdminDashboardContent() {
   const maxStateCount = stateSummary[0]?.count || 1;
 
   // Profiling completeness percent calculation (Vaccinated vs Total Profiled)
-  const totalProfiledCount = summary?.healthIndicators.totalCitizensProfiled || 1;
-  const vaccinationRatePercent = Math.round(
-    ((summary?.healthIndicators.vaccinationComplete || 0) / totalProfiledCount) * 100
-  );
+  const totalProfiled = summary?.healthIndicators?.totalCitizensProfiled ?? 0;
+  const vaccinationRatePercent =
+    totalProfiled > 0
+      ? Math.round(
+          ((summary?.healthIndicators?.vaccinationComplete || 0) /
+            totalProfiled) *
+            100
+        )
+      : 0;
 
   return (
     <div className="min-h-screen bg-slate-50/50 text-slate-800 flex relative font-sans">
@@ -747,7 +801,7 @@ function AdminDashboardContent() {
           {/* Greeting Header */}
           <div className="leading-tight select-none">
             <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">
-              Good morning, {email.split("@")[0]} 👋
+              {getGreeting()}, {email ? email.split("@")[0] : "Administrator"} 👋
             </span>
             <h2 className="text-2xl font-serif font-bold text-slate-800 tracking-tight">
               Command Dashboard {isAgencyAdmin && adminState ? `(${adminState} State)` : ""}
@@ -776,10 +830,11 @@ function AdminDashboardContent() {
                     {/* Stat Card 1: circular progress indicator for Welfare completeness */}
                     <StatCard
                       title="Welfare Completion"
-                      value={`${summary.healthIndicators.totalCitizensProfiled.toLocaleString()} profiled`}
+                      value={`${totalProfiled.toLocaleString()} profiled`}
                       icon={Activity}
                       type="progress"
-                      progressValue={vaccinationRatePercent || 98}
+                      progressValue={vaccinationRatePercent}
+                      progressLabel={`${vaccinationRatePercent}% Profiled & Immunized`}
                       accentColor="green"
                       footerLabel="View welfare indices"
                       onFooterClick={() => handleTabChange("health")}
@@ -788,12 +843,12 @@ function AdminDashboardContent() {
                     {/* Stat Card 2: Total Registered Citizens */}
                     <StatCard
                       title="Total Citizens"
-                      value={summary.totalCitizens.toLocaleString()}
+                      value={(summary.totalCitizens ?? 0).toLocaleString()}
                       icon={Users}
                       trend={{
-                        value: `+${Math.round((summary.totalCitizensLast30Days / (summary.totalCitizens || 1)) * 100)}%`,
+                        value: `+${(summary.totalCitizensLast30Days ?? 0).toLocaleString()}`,
                         isPositive: true,
-                        label: "vs last month",
+                        label: "registered last 30d",
                       }}
                       accentColor="blue"
                       footerLabel="Browse database"
@@ -803,12 +858,12 @@ function AdminDashboardContent() {
                     {/* Stat Card 3: Male Registry */}
                     <StatCard
                       title="Male Registry"
-                      value={summary.maleCitizens.toLocaleString()}
+                      value={(summary.maleCitizens ?? 0).toLocaleString()}
                       icon={UserCheck}
                       trend={{
-                        value: `+${summary.totalCitizensLast7Days}`,
+                        value: `${summary.totalCitizens > 0 ? Math.round(((summary.maleCitizens ?? 0) / summary.totalCitizens) * 100) : 0}%`,
                         isPositive: true,
-                        label: "added last 7d",
+                        label: "of total registry",
                       }}
                       accentColor="purple"
                       footerLabel="View male roster"
@@ -821,12 +876,12 @@ function AdminDashboardContent() {
                     {/* Stat Card 4: Female Registry */}
                     <StatCard
                       title="Female Registry"
-                      value={summary.femaleCitizens.toLocaleString()}
+                      value={(summary.femaleCitizens ?? 0).toLocaleString()}
                       icon={UserCheck}
                       trend={{
-                        value: "12.7%",
+                        value: `${summary.totalCitizens > 0 ? Math.round(((summary.femaleCitizens ?? 0) / summary.totalCitizens) * 100) : 0}%`,
                         isPositive: true,
-                        label: "registry ratio shift",
+                        label: "of total registry",
                       }}
                       accentColor="pink"
                       footerLabel="View female roster"
@@ -1143,7 +1198,7 @@ function AdminDashboardContent() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-600">
-                          {registry?.content.slice(0, 4).map((citizen) => (
+                          {(registry?.content ?? []).slice(0, 4).map((citizen) => (
                             <tr
                               key={citizen.citizenCode}
                               onClick={() => setSelectedCitizenCode(citizen.citizenCode)}
@@ -1160,7 +1215,7 @@ function AdminDashboardContent() {
                               <td className="py-2.5 px-4 text-slate-400">{citizen.stateOfOrigin}</td>
                             </tr>
                           ))}
-                          {!registry?.content.length && (
+                          {(!registry?.content || registry.content.length === 0) && (
                             <tr>
                               <td colSpan={5} className="py-4 text-center text-slate-400 italic">
                                 No recent logs available.
@@ -1291,6 +1346,58 @@ function AdminDashboardContent() {
                       </div>
                     </div>
 
+                    {/* Age Group Filter Radio Group (5-Year Intervals) */}
+                    <div className="pt-3 border-t border-slate-100 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                          <span className="text-[10px] font-bold text-slate-500 uppercase font-mono tracking-wider">
+                            Age Group Filter (5-Year Intervals)
+                          </span>
+                        </div>
+                        {selectedAgeGroup !== "all" && (
+                          <span className="text-[10px] font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+                            Active Bracket: {AGE_GROUP_OPTIONS.find((g) => g.id === selectedAgeGroup)?.label}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {AGE_GROUP_OPTIONS.map((group) => {
+                          const isSelected = selectedAgeGroup === group.id;
+                          return (
+                            <label
+                              key={group.id}
+                              className={cn(
+                                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-mono cursor-pointer transition-all select-none",
+                                isSelected
+                                  ? "bg-blue-600 border-blue-600 text-white font-bold shadow-2xs"
+                                  : "bg-slate-50/70 border-slate-200/80 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
+                              )}
+                            >
+                              <input
+                                type="radio"
+                                name="citizenAgeGroupFilter"
+                                value={group.id}
+                                checked={isSelected}
+                                onChange={() => setSelectedAgeGroup(group.id)}
+                                className="sr-only"
+                              />
+                              <span
+                                className={cn(
+                                  "w-2 h-2 rounded-full border flex items-center justify-center shrink-0 transition-all",
+                                  isSelected ? "border-white bg-white" : "border-slate-400 bg-white"
+                                )}
+                              >
+                                {isSelected && <span className="w-1 h-1 rounded-full bg-blue-600" />}
+                              </span>
+                              <span>{group.label}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+
                     <div className="flex justify-end gap-3 pt-2">
                       <button
                         onClick={handleClearFilters}
@@ -1310,7 +1417,7 @@ function AdminDashboardContent() {
                           Reconciling records...
                         </span>
                       </div>
-                    ) : registry && registry.content.length > 0 ? (
+                    ) : filteredRegistryContent.length > 0 ? (
                       <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse text-xs">
                           <thead>
@@ -1325,7 +1432,7 @@ function AdminDashboardContent() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 text-slate-600">
-                            {registry.content.map((citizen) => (
+                            {filteredRegistryContent.map((citizen) => (
                               <tr
                                 key={citizen.citizenCode}
                                 onClick={() => setSelectedCitizenCode(citizen.citizenCode)}
@@ -1437,7 +1544,7 @@ function AdminDashboardContent() {
                 />
               )}
 
-              {/* ==================== TAB: HR & JOBS (INCORPORATING BUSINESS AFFAIRS) ==================== */}
+              {/* ==================== TAB: JOBS AND BUSINESS ==================== */}
               {activeTab === "hr" && (
                 <HrJobsDomainTab
                   summary={summary}
@@ -1467,43 +1574,121 @@ function AdminDashboardContent() {
               {/* ==================== TAB 9: USERS & SECURITY ROLES ==================== */}
               {activeTab === "users" && (
                 <div className="bg-white border border-slate-200/60 p-6 rounded-3xl shadow-xs space-y-4 animate-in fade-in duration-300">
-                  <div className="flex items-center gap-2 select-none">
-                    <Shield className="w-5 h-5 text-blue-600" />
-                    <h4 className="text-sm font-mono font-bold text-slate-800 uppercase tracking-widest">
-                      User Accounts & Security Clearance Roles
-                    </h4>
+                  <div className="flex items-center justify-between select-none">
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-blue-600" />
+                      <h4 className="text-sm font-mono font-bold text-slate-800 uppercase tracking-widest">
+                        Live User Accounts & Security Clearance Roles
+                      </h4>
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {1 + (officersList?.length || 0)} Authorized Personnel Active
+                    </span>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr className="border-b border-slate-200/80 bg-slate-50/50 text-[9px] font-mono text-slate-400 uppercase tracking-wider">
-                          <th className="py-3 px-4 font-bold">User Email</th>
-                          <th className="py-3 px-4 font-bold">Security Role</th>
-                          <th className="py-3 px-4 font-bold">Granted Authorities</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-600">
-                        <tr className="hover:bg-slate-50/40">
-                          <td className="py-2.5 px-4 font-semibold text-slate-800">admin@citieye.gov.ng</td>
-                          <td className="py-2.5 px-4">
-                            <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100 text-[9px] font-mono font-bold uppercase">
-                              super_admin
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-4 font-mono text-slate-400">ALL_SYSTEM_PRIVILEGES, REFRESH_VIEWS, DECRYPT_KEYS</td>
-                        </tr>
-                        <tr className="hover:bg-slate-50/40">
-                          <td className="py-2.5 px-4 font-semibold text-slate-800">agency-lead@citieye.gov.ng</td>
-                          <td className="py-2.5 px-4">
-                            <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-mono font-bold uppercase">
-                              agency_admin
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-4 font-mono text-slate-400">PUBLISH_CMS, READ_CITIZENS, VIEW_ANALYTICS</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+
+                  {officersLoading ? (
+                    <div className="flex flex-col items-center justify-center py-16 gap-3">
+                      <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                      <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
+                        Querying live administrative directory...
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="border-b border-slate-200/80 bg-slate-50/50 text-[9px] font-mono text-slate-400 uppercase tracking-wider">
+                            <th className="py-3 px-4 font-bold">Personnel / Email</th>
+                            <th className="py-3 px-4 font-bold">Security Code</th>
+                            <th className="py-3 px-4 font-bold">Security Role</th>
+                            <th className="py-3 px-4 font-bold">Jurisdiction</th>
+                            <th className="py-3 px-4 font-bold">Granted Authorities</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-600">
+                          {/* Current Authenticated Administrator Session */}
+                          <tr className="hover:bg-slate-50/40 bg-blue-50/10">
+                            <td className="py-2.5 px-4 font-semibold text-slate-800">
+                              <div className="flex items-center gap-1.5">
+                                <span>{email || "Administrator"}</span>
+                                <span className="px-1.5 py-0.2 rounded text-[8px] font-mono bg-blue-100 text-blue-700 font-bold uppercase">
+                                  Current Session
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-2.5 px-4 font-mono text-[10px] text-slate-500">
+                              {user?.citizenCode || user?.identifier || "ADM-SESSION"}
+                            </td>
+                            <td className="py-2.5 px-4">
+                              <span
+                                className={cn(
+                                  "px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase border",
+                                  isSuperAdmin
+                                    ? "bg-rose-50 text-rose-600 border-rose-100"
+                                    : "bg-blue-50 text-blue-600 border-blue-100"
+                                )}
+                              >
+                                {role.toLowerCase()}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-4 text-slate-500 font-mono text-[11px]">
+                              {adminState ? `${adminState} State` : "Federal (Nationwide)"}
+                            </td>
+                            <td className="py-2.5 px-4 font-mono text-[10px] text-slate-500">
+                              {isSuperAdmin
+                                ? "ALL_SYSTEM_PRIVILEGES, REFRESH_VIEWS, JURISDICTION_OVERRIDE"
+                                : "PUBLISH_CMS, READ_CITIZENS, VIEW_ANALYTICS"}
+                            </td>
+                          </tr>
+
+                          {/* Live Registered Field Officers & Administrators */}
+                          {officersList && officersList.length > 0 ? (
+                            officersList.map((officer) => (
+                              <tr key={officer.id || officer.citizenCode} className="hover:bg-slate-50/40">
+                                <td className="py-2.5 px-4 font-semibold text-slate-800">
+                                  <div>
+                                    <span>{officer.fullName || `${officer.firstName} ${officer.lastName}`}</span>
+                                    {officer.email && (
+                                      <span className="block text-[10px] font-mono text-slate-400 font-normal">
+                                        {officer.email}
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="py-2.5 px-4 font-mono text-[10px] text-slate-500">
+                                  {officer.citizenCode}
+                                </td>
+                                <td className="py-2.5 px-4">
+                                  <span
+                                    className={cn(
+                                      "px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase border",
+                                      officer.role?.includes("health")
+                                        ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                                        : officer.role?.includes("education")
+                                        ? "bg-indigo-50 text-indigo-600 border-indigo-100"
+                                        : "bg-slate-100 text-slate-600 border-slate-200"
+                                    )}
+                                  >
+                                    {officer.role?.toLowerCase() || "field_officer"}
+                                  </span>
+                                </td>
+                                <td className="py-2.5 px-4 text-slate-500 font-mono text-[11px]">
+                                  {[officer.residenceLga || officer.lga, officer.stateOfResidence || officer.stateOfOrigin]
+                                    .filter(Boolean)
+                                    .join(", ") || "Nationwide"}
+                                </td>
+                                <td className="py-2.5 px-4 font-mono text-[10px] text-slate-500">
+                                  {officer.specialty
+                                    ? `${officer.specialty.toUpperCase()}_OPERATIONS, RECORD_LOGGING`
+                                    : "FIELD_VERIFICATION, CITIZEN_ENROLLMENT"}
+                                </td>
+                              </tr>
+                            ))
+                          ) : null}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               )}
 

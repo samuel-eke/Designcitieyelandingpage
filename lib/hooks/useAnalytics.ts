@@ -53,6 +53,7 @@ export function useCitizenRegistry(filters: CitizenRegistryFilters) {
       const response = await apiClient.get<PagedResult<CitizenListItemDto>>(
         `/api/analytics/citizens?${params.toString()}`
       );
+      console.log(response.data);
       return response.data;
     },
   });

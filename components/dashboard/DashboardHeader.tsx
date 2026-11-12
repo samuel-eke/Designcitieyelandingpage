@@ -41,7 +41,7 @@ export function DashboardHeader({
           <code className="text-xs font-mono font-bold text-stone-700 tracking-wide">{citizenCode}</code>
         </div>
         <div className="md:hidden">
-          <code className="text-[11px] font-mono font-bold text-stone-700">{citizenCode.slice(0, 11)}..</code>
+          <code className="text-[11px] font-mono font-bold text-stone-700">{citizenCode?.slice(0, 11)}..</code>
         </div>
         <button
           onClick={copyCitizenCode}

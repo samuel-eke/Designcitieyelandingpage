@@ -18,7 +18,7 @@ export function OpportunitiesWidget({
   onApply,
   onNavigateToOpportunities,
 }: OpportunitiesWidgetProps) {
-  const displayItems = opportunities.slice(0, 3);
+  const displayItems = (opportunities || []).slice(0, 3);
 
   return (
     <div className="bg-white border border-stone-200/80 rounded-2xl p-5 shadow-sm space-y-4">
@@ -41,7 +41,7 @@ export function OpportunitiesWidget({
           onClick={onNavigateToOpportunities}
           className="text-xs font-bold text-green-700 hover:text-green-800 flex items-center gap-0.5 cursor-pointer"
         >
-          View All ({opportunities.length}) →
+          View All ({opportunities?.length || 0}) →
         </button>
       </div>
 

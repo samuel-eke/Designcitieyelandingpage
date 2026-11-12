@@ -52,7 +52,7 @@ export function HrJobsDetailDrawer({
               </span>
               <div>
                 <span className="text-[10px] font-mono text-indigo-600 font-bold uppercase tracking-widest">
-                  HR, Jobs & Business Enterprise Profile
+                  Jobs & Business Profile
                 </span>
                 <SheetTitle className="text-xl font-bold text-slate-900">
                   {profile?.fullName || "Economic Profile"}

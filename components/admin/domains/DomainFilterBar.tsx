@@ -51,12 +51,12 @@ export function DomainFilterBar({
               className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
             >
               <option value="">All Academic Levels</option>
-              <option value="Kindergarten">Kindergarten</option>
-              <option value="Nursery">Nursery</option>
+              <option value="Nursery">Students in Nursery Section</option>
               <option value="Primary">Primary</option>
               <option value="Secondary">Secondary</option>
               <option value="Undergraduate">Undergraduate</option>
               <option value="Postgraduate">Postgraduate</option>
+              <option value="Not in school">Not in School</option>
               <option value="Vocational">Vocational / Technical</option>
             </select>
           </div>
@@ -141,7 +141,7 @@ export function DomainFilterBar({
           </div>
         )}
 
-        {/* ================= HR & JOBS FILTERS ================= */}
+        {/* ================= JOBS & BUSINESS FILTERS ================= */}
         {domain === "hr" && (
           <div className="flex flex-wrap items-center gap-2">
             <select

@@ -1,34 +1,27 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import { Database, GraduationCap } from "lucide-react";
-import { WidgetPanel } from "@/components/admin/dashboard/WidgetPanel";
+import { GraduationCap } from "lucide-react";
 import { DomainFilterBar } from "./DomainFilterBar";
 import { DomainDataTable } from "./DomainDataTable";
 import { EducationDetailDrawer } from "./drawer/EducationDetailDrawer";
 import { useDomainCitizens } from "@/lib/hooks/useDomainCitizens";
+import {
+  useEducationTierCounts,
+  EDUCATION_TIERS,
+} from "@/lib/hooks/useEducationDomainStats";
 import type { DomainFilterParams } from "@/lib/types/domainCitizens";
 import type { AnalyticsSummaryDto } from "@/lib/types/citieye";
 
 interface EducationDomainTabProps {
-  summary: AnalyticsSummaryDto | null | undefined;
+  summary?: AnalyticsSummaryDto | null | undefined;
   filters: DomainFilterParams;
   onFilterChange: (key: keyof DomainFilterParams, value: any) => void;
   onResetFilters: () => void;
 }
 
 export function EducationDomainTab({
-  summary,
+  summary: _summary,
   filters,
   onFilterChange,
   onResetFilters,
@@ -41,121 +34,74 @@ export function EducationDomainTab({
     domain: "education",
   });
 
+  // Fetch live counts for the 6 educational tiers
+  const { counts, isLoading: isCountsLoading } = useEducationTierCounts({
+    state: filters.state,
+    lga: filters.lga,
+    gender: filters.gender,
+  });
+
+  const handleTierClick = (tierKey: string) => {
+    if (filters.educationalLevel === tierKey) {
+      onFilterChange("educationalLevel", undefined);
+    } else {
+      onFilterChange("educationalLevel", tierKey);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      {/* ================= TOP METRICS SECTION ================= */}
-      {summary && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">
-                  Foundational Education
-                </span>
-                <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                  {(
-                    summary.byCohort.find((c: any) => c.cohortName.toLowerCase().includes("foundational"))
-                      ?.totalCitizens || 0
-                  ).toLocaleString()}
-                </h3>
-              </div>
-              <span className="text-[9px] font-mono text-slate-400">Ages 6 - 11 Cohort</span>
-            </div>
+      {/* ================= 6 EDUCATION STATS CARDS (NO ICONS) ================= */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        {EDUCATION_TIERS.map((tier) => {
+          const isActive = filters.educationalLevel === tier.key;
+          const count = counts[tier.key] ?? 0;
 
-            <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">
-                  Secondary Education
+          return (
+            <button
+              key={tier.key}
+              type="button"
+              onClick={() => handleTierClick(tier.key)}
+              className={`bg-white border rounded-2xl p-4 shadow-2xs flex flex-col justify-between h-[128px] text-left transition-all duration-150 cursor-pointer group relative ${
+                isActive
+                  ? "border-blue-500 ring-2 ring-blue-500/20 bg-blue-50/20 shadow-xs"
+                  : "border-slate-200/80 hover:border-slate-300 hover:shadow-xs"
+              }`}
+            >
+              {/* Card Top: Title & Active Badge */}
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[11px] font-mono text-slate-500 font-bold uppercase tracking-wider block line-clamp-1">
+                  {tier.title}
                 </span>
-                <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                  {(
-                    summary.byCohort.find((c: any) => c.cohortName.toLowerCase().includes("secondary"))
-                      ?.totalCitizens || 0
-                  ).toLocaleString()}
-                </h3>
+                {isActive && (
+                  <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded text-[9px] font-mono font-bold leading-none shrink-0">
+                    Active
+                  </span>
+                )}
               </div>
-              <span className="text-[9px] font-mono text-slate-400">Ages 12 - 18 Cohort</span>
-            </div>
 
-            <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">
-                  Higher Education
+              {/* Card Middle: Live Stat Count */}
+              <div className="my-1">
+                {isCountsLoading ? (
+                  <div className="h-7 w-20 bg-slate-100 animate-pulse rounded-md" />
+                ) : (
+                  <h3 className="text-2xl font-serif font-bold text-slate-900 tracking-tight">
+                    {count.toLocaleString()}
+                  </h3>
+                )}
+              </div>
+
+              {/* Card Bottom: Subtitle & Quick Action */}
+              <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
+                <span className="truncate">{tier.label}</span>
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 font-semibold ml-1 shrink-0">
+                  {isActive ? "Clear" : "Filter →"}
                 </span>
-                <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                  {(
-                    summary.byCohort.find((c: any) => c.cohortName.toLowerCase().includes("higher"))
-                      ?.totalCitizens || 0
-                  ).toLocaleString()}
-                </h3>
               </div>
-              <span className="text-[9px] font-mono text-slate-400">Ages 19 - 26 Cohort</span>
-            </div>
-          </div>
-
-          <WidgetPanel
-            title="Education Milestones & Enrollment Rates"
-            icon={Database}
-            className="h-[320px]"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={[
-                  {
-                    name: "Foundational",
-                    Total:
-                      summary.byCohort.find((c: any) =>
-                        c.cohortName.toLowerCase().includes("foundational")
-                      )?.totalCitizens || 0,
-                    Completed:
-                      summary.byCohort.find((c: any) =>
-                        c.cohortName.toLowerCase().includes("foundational")
-                      )?.citizensWithAnyMilestoneCompleted || 0,
-                  },
-                  {
-                    name: "Secondary",
-                    Total:
-                      summary.byCohort.find((c: any) =>
-                        c.cohortName.toLowerCase().includes("secondary")
-                      )?.totalCitizens || 0,
-                    Completed:
-                      summary.byCohort.find((c: any) =>
-                        c.cohortName.toLowerCase().includes("secondary")
-                      )?.citizensWithAnyMilestoneCompleted || 0,
-                  },
-                  {
-                    name: "Higher Ed",
-                    Total:
-                      summary.byCohort.find((c: any) =>
-                        c.cohortName.toLowerCase().includes("higher")
-                      )?.totalCitizens || 0,
-                    Completed:
-                      summary.byCohort.find((c: any) =>
-                        c.cohortName.toLowerCase().includes("higher")
-                      )?.citizensWithAnyMilestoneCompleted || 0,
-                  },
-                ]}
-                margin={{ top: 10, right: 10, left: 10, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
-                <YAxis stroke="#94a3b8" fontSize={10} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "white",
-                    borderColor: "#e2e8f0",
-                    borderRadius: 12,
-                    fontSize: 10,
-                  }}
-                />
-                <Legend wrapperStyle={{ fontSize: 10 }} />
-                <Bar name="Total Enrolled" dataKey="Total" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                <Bar name="Milestones Met" dataKey="Completed" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </WidgetPanel>
-        </>
-      )}
+            </button>
+          );
+        })}
+      </div>
 
       {/* ================= BOTTOM CITIZEN DATA TABLE ================= */}
       <div className="space-y-4">

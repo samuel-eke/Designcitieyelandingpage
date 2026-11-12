@@ -33,7 +33,10 @@ export async function GET(req: NextRequest) {
   if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
     return new Response(
       JSON.stringify({ error: "Missing or invalid Authorization header." }),
-      { status: 401, headers: { "Content-Type": "application/json" } }
+      {
+        status: 401,
+        headers: { "Content-Type": "application/json" }
+      }
     );
   }
 
@@ -48,6 +51,7 @@ export async function GET(req: NextRequest) {
         Accept: "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
+        "ngrok-skip-browser-warning": "true"
       },
       // Node.js fetch: disable response body auto-consumption so we can stream it
       // @ts-expect-error — `duplex` is required for streaming in Node 18+
@@ -100,7 +104,7 @@ export async function GET(req: NextRequest) {
       // This is normal when Spring Boot ends the SSE connection.
       // Silently end the stream — the browser hook will reconnect.
     } finally {
-      writer.close().catch(() => {});
+      writer.close().catch(() => { });
     }
   })();
 

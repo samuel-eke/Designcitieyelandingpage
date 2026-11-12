@@ -18,6 +18,7 @@ interface StatCardProps {
   accentColor?: "blue" | "green" | "purple" | "orange" | "cyan" | "pink";
   type?: "default" | "progress";
   progressValue?: number;
+  progressLabel?: string;
 }
 
 export function StatCard({
@@ -30,6 +31,7 @@ export function StatCard({
   accentColor = "blue",
   type = "default",
   progressValue = 0,
+  progressLabel,
 }: StatCardProps) {
   // Styles based on accent colors
   const accentClasses = {
@@ -124,7 +126,7 @@ export function StatCard({
             <div className="leading-tight">
               <h3 className="text-2xl font-serif font-bold text-slate-800">{value}</h3>
               <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest block font-medium">
-                Excellent Status
+                {progressLabel || (progressValue > 0 ? `${progressValue}% Recorded` : "Ledger Pending")}
               </span>
             </div>
           </div>

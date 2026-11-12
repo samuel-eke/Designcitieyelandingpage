@@ -29,18 +29,20 @@ export function HealthDomainTab({
     domain: "health",
   });
 
-  const vaccinationRatePercent = summary?.healthIndicators.totalCitizensProfiled
-    ? Math.round(
-        (summary.healthIndicators.vaccinationComplete /
-          summary.healthIndicators.totalCitizensProfiled) *
-          100
-      )
-    : 0;
+  const totalProfiled = summary?.healthIndicators?.totalCitizensProfiled ?? 0;
+  const vaccinationRatePercent =
+    totalProfiled > 0
+      ? Math.round(
+          (((summary?.healthIndicators?.vaccinationComplete as number) || 0) /
+            totalProfiled) *
+            100
+        )
+      : 0;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* ================= TOP METRICS SECTION ================= */}
-      {summary && (
+      {summary && summary.healthIndicators && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {/* NHIS Enrollment Card */}

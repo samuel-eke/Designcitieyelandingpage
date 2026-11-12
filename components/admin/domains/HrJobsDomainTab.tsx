@@ -4,14 +4,14 @@ import React, { useState } from "react";
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Briefcase, Building, TrendingUp } from "lucide-react";
+import { Briefcase, Building } from "lucide-react";
 import { WidgetPanel } from "@/components/admin/dashboard/WidgetPanel";
 import { DomainFilterBar } from "./DomainFilterBar";
 import { DomainDataTable } from "./DomainDataTable";
@@ -40,176 +40,230 @@ export function HrJobsDomainTab({
     domain: "hr",
   });
 
+  // Calculate live counts for each employment track from summary
+  const employedCount = React.useMemo(() => {
+    if (!summary?.byEmploymentStatus) return 0;
+    return summary.byEmploymentStatus
+      .filter((e: any) => e.employmentStatus?.toLowerCase() === "employed")
+      .reduce((acc: number, curr: any) => acc + curr.citizenCount, 0);
+  }, [summary]);
+
+  const unemployedCount = React.useMemo(() => {
+    if (!summary?.byEmploymentStatus) return 0;
+    return summary.byEmploymentStatus
+      .filter((e: any) => e.employmentStatus?.toLowerCase() === "unemployed")
+      .reduce((acc: number, curr: any) => acc + curr.citizenCount, 0);
+  }, [summary]);
+
+  const businessCount = React.useMemo(() => {
+    if (!summary?.byEmploymentStatus) return 0;
+    return summary.byEmploymentStatus
+      .filter((e: any) => {
+        const s = e.employmentStatus?.toLowerCase() || "";
+        return s === "business_owner" || s === "business" || s === "enterprise";
+      })
+      .reduce((acc: number, curr: any) => acc + curr.citizenCount, 0);
+  }, [summary]);
+
+  const vocationalCount = React.useMemo(() => {
+    if (!summary?.byEmploymentStatus) return 0;
+    return summary.byEmploymentStatus
+      .filter((e: any) => {
+        const s = e.employmentStatus?.toLowerCase() || "";
+        return (
+          s === "vocational" ||
+          s === "artisan" ||
+          s === "vocational_training" ||
+          s === "apprenticeship"
+        );
+      })
+      .reduce((acc: number, curr: any) => acc + curr.citizenCount, 0);
+  }, [summary]);
+
+  // Click-to-filter toggle handler for the 4 top cards
+  const handleTrackClick = (trackKey: string) => {
+    if (filters.employmentTrack === trackKey) {
+      onFilterChange("employmentTrack", undefined);
+    } else {
+      onFilterChange("employmentTrack", trackKey);
+    }
+  };
+
+  const statTracks = [
+    {
+      key: "employed",
+      title: "Employed Citizens",
+      label: "Formal & Contract Employment",
+      count: employedCount,
+    },
+    {
+      key: "unemployed",
+      title: "Unemployed Citizens",
+      label: "Actively Job-Seeking",
+      count: unemployedCount,
+    },
+    {
+      key: "business",
+      title: "Business Owners & SMEs",
+      label: "Self-Employed & Enterprise (CAC)",
+      count: businessCount,
+    },
+    {
+      key: "vocational",
+      title: "Vocational Trade Learners",
+      label: "Skills Acquisition & Apprenticeship",
+      count: vocationalCount,
+    },
+  ];
+
+  // Chart 1: Employed and Unemployed Citizens
+  const employmentRatioData = React.useMemo(() => {
+    return [
+      {
+        name: "Employed",
+        Count: employedCount,
+        fill: "#10b981", // Emerald
+      },
+      {
+        name: "Unemployed",
+        Count: unemployedCount,
+        fill: "#f43f5e", // Rose
+      },
+    ];
+  }, [employedCount, unemployedCount]);
+
+  // Chart 2: Citizens with Businesses and Learning Vocational Trade
+  const businessVocationalData = React.useMemo(() => {
+    return [
+      {
+        name: "Doing Business (SMEs)",
+        Count: businessCount,
+        fill: "#6366f1", // Indigo
+      },
+      {
+        name: "Vocational Trade / Trainees",
+        Count: vocationalCount,
+        fill: "#f59e0b", // Amber
+      },
+    ];
+  }, [businessCount, vocationalCount]);
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      {/* ================= TOP METRICS SECTION ================= */}
+      {/* ================= 4 TOP STAT CARDS (NO ICONS) ================= */}
       {summary && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">
-                  Employed Citizens
-                </span>
-                <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                  {summary.byEmploymentStatus
-                    .filter((e: any) => e.employmentStatus === "employed")
-                    .reduce((acc: number, curr: any) => acc + curr.citizenCount, 0)
-                    .toLocaleString()}
-                </h3>
-              </div>
-              <span className="text-[9px] font-mono text-slate-400">Formal & Contract employment</span>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {statTracks.map((track) => {
+              const isActive = filters.employmentTrack === track.key;
 
-            <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">
-                  Enterprise & Business Owners
-                </span>
-                <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                  {summary.byEmploymentStatus
-                    .filter((e: any) => e.employmentStatus === "business_owner")
-                    .reduce((acc: number, curr: any) => acc + curr.citizenCount, 0)
-                    .toLocaleString()}
-                </h3>
-              </div>
-              <span className="text-[9px] font-mono text-slate-400">Self-employed & SMEs (CAC)</span>
-            </div>
+              return (
+                <button
+                  key={track.key}
+                  type="button"
+                  onClick={() => handleTrackClick(track.key)}
+                  className={`bg-white border rounded-2xl p-4 shadow-2xs flex flex-col justify-between h-[128px] text-left transition-all duration-150 cursor-pointer group relative ${
+                    isActive
+                      ? "border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/20 shadow-xs"
+                      : "border-slate-200/80 hover:border-slate-300 hover:shadow-xs"
+                  }`}
+                >
+                  {/* Card Top: Title & Active Badge */}
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[11px] font-mono text-slate-500 font-bold uppercase tracking-wider block line-clamp-1">
+                      {track.title}
+                    </span>
+                    {isActive && (
+                      <span className="px-1.5 py-0.5 bg-indigo-600 text-white rounded text-[9px] font-mono font-bold leading-none shrink-0">
+                        Active
+                      </span>
+                    )}
+                  </div>
 
-            <div className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-xs flex flex-col justify-between h-[140px]">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest block">
-                  Unemployed Citizens
-                </span>
-                <h3 className="text-2xl font-serif font-bold text-slate-800 mt-2">
-                  {summary.byEmploymentStatus
-                    .filter((e: any) => e.employmentStatus === "unemployed")
-                    .reduce((acc: number, curr: any) => acc + curr.citizenCount, 0)
-                    .toLocaleString()}
-                </h3>
-              </div>
-              <span className="text-[9px] font-mono text-slate-400">Actively seeking opportunities</span>
-            </div>
+                  {/* Card Middle: Live Stat Count */}
+                  <div className="my-1">
+                    <h3 className="text-2xl font-serif font-bold text-slate-900 tracking-tight">
+                      {track.count.toLocaleString()}
+                    </h3>
+                  </div>
+
+                  {/* Card Bottom: Subtitle & Quick Action */}
+                  <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
+                    <span className="truncate">{track.label}</span>
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-indigo-600 font-semibold ml-1 shrink-0">
+                      {isActive ? "Clear" : "Filter →"}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
+          {/* ================= TWO COMPARATIVE CHARTS ================= */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Chart 1: Employed and Unemployed Citizens */}
             <WidgetPanel
-              title="Employment Sector Distribution"
+              title="Employed & Unemployed Citizens"
               icon={Briefcase}
               className="h-[320px]"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={Object.entries(
-                    summary.byEmploymentStatus.reduce((acc: Record<string, number>, curr: any) => {
-                      const sector = curr.industrySector || "unspecified";
-                      acc[sector] = (acc[sector] || 0) + curr.citizenCount;
-                      return acc;
-                    }, {} as Record<string, number>)
-                  ).map(([sector, count]) => ({
-                    sector: sector.charAt(0).toUpperCase() + sector.slice(1).replace("_", " "),
-                    Count: count,
-                  }))}
-                  margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
+                  data={employmentRatioData}
+                  margin={{ top: 20, right: 20, left: 10, bottom: 10 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="sector" stroke="#94a3b8" fontSize={10} angle={-15} textAnchor="end" />
+                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} fontWeight={600} />
                   <YAxis stroke="#94a3b8" fontSize={10} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "white",
                       borderColor: "#e2e8f0",
                       borderRadius: 12,
-                      fontSize: 10,
+                      fontSize: 11,
                     }}
+                    formatter={(val: any) => [Number(val).toLocaleString(), "Citizens"]}
                   />
-                  <Bar dataKey="Count" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Count" radius={[6, 6, 0, 0]}>
+                    {employmentRatioData.map((entry, index) => (
+                      <Cell key={`cell-emp-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </WidgetPanel>
 
+            {/* Chart 2: Citizens with Businesses and Learning Vocational Trade */}
             <WidgetPanel
-              title="Monthly Income Range Breakdown"
-              icon={TrendingUp}
+              title="Businesses & Vocational Trade Learners"
+              icon={Building}
               className="h-[320px]"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={Object.entries(
-                    summary.byEmploymentStatus.reduce((acc: Record<string, number>, curr: any) => {
-                      const bracket = curr.monthlyIncomeRange || "unspecified";
-                      acc[bracket] = (acc[bracket] || 0) + curr.citizenCount;
-                      return acc;
-                    }, {} as Record<string, number>)
-                  ).map(([range, count]) => ({
-                    range: range.toUpperCase(),
-                    Citizens: count,
-                  }))}
-                  margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
+                  data={businessVocationalData}
+                  margin={{ top: 20, right: 20, left: 10, bottom: 10 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="range" stroke="#94a3b8" fontSize={9} />
+                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} fontWeight={600} />
                   <YAxis stroke="#94a3b8" fontSize={10} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "white",
                       borderColor: "#e2e8f0",
                       borderRadius: 12,
-                      fontSize: 10,
+                      fontSize: 11,
                     }}
+                    formatter={(val: any) => [Number(val).toLocaleString(), "Citizens"]}
                   />
-                  <Bar dataKey="Citizens" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Count" radius={[6, 6, 0, 0]}>
+                    {businessVocationalData.map((entry, index) => (
+                      <Cell key={`cell-biz-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </WidgetPanel>
-          </div>
-
-          {/* Consolidated Business Affairs / SME Classification Summary */}
-          <div className="bg-white border border-slate-200/60 p-6 rounded-3xl shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2 select-none">
-                <Building className="w-4 h-4 text-indigo-600" />
-                <h4 className="text-xs font-mono font-bold text-slate-800 uppercase tracking-widest">
-                  Enterprise Classification & SME Sector Profile
-                </h4>
-              </div>
-              <span className="text-[10px] font-mono font-bold uppercase text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-200">
-                Business Affairs Module
-              </span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-slate-200/80 bg-slate-50/50 text-[9px] font-mono text-slate-400 uppercase tracking-wider">
-                    <th className="py-3 px-4 font-bold">Industry Sector</th>
-                    <th className="py-3 px-4 font-bold">Monthly Income Range</th>
-                    <th className="py-3 px-4 font-bold">Employment Status</th>
-                    <th className="py-3 px-4 font-bold text-right">Profiled SMEs</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-600">
-                  {summary.byEmploymentStatus
-                    .filter((e: any) => e.employmentStatus === "business_owner")
-                    .map((item: any, idx: number) => (
-                      <tr key={idx} className="hover:bg-slate-50/40">
-                        <td className="py-2.5 px-4 font-semibold text-slate-800">
-                          {item.industrySector
-                            ? item.industrySector.replace("_", " ").toUpperCase()
-                            : "GENERAL RETAIL / COMMERCE"}
-                        </td>
-                        <td className="py-2.5 px-4 font-mono">{item.monthlyIncomeRange || "N/A"}</td>
-                        <td className="py-2.5 px-4 uppercase font-mono text-[9px] text-slate-400">
-                          {item.employmentStatus}
-                        </td>
-                        <td className="py-2.5 px-4 text-right font-mono font-bold text-indigo-600">
-                          {item.citizenCount.toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
           </div>
         </>
       )}
@@ -220,7 +274,7 @@ export function HrJobsDomainTab({
           <div className="flex items-center gap-2">
             <Briefcase className="w-5 h-5 text-indigo-600" />
             <h3 className="text-base font-bold text-slate-800">
-              Workforce, SME & Economic Profile Registry
+              Jobs and Business Citizen Registry
             </h3>
           </div>
           <span className="text-xs font-mono text-slate-500">
