@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useAuthStore, extractUserRole, isAdminRole } from "@/components/auth/authStore";
 import {
   Building2,
@@ -137,7 +137,11 @@ function AdminDashboardContent() {
     size: 20,
   });
 
-  const handleDomainFilterChange = (key: keyof DomainFilterParams, value: any) => {
+  // Ref lock to break circular state-sync loop between local state and useSearchParams
+  const isLocalDomainChangeRef = useRef(false);
+
+  const handleDomainFilterChange = useCallback((key: keyof DomainFilterParams, value: any) => {
+    isLocalDomainChangeRef.current = true;
     setDomainFilters((prev) => {
       const next = { ...prev, [key]: value };
       if (key !== "page") {
@@ -145,14 +149,15 @@ function AdminDashboardContent() {
       }
       return next;
     });
-  };
+  }, []);
 
-  const handleResetDomainFilters = () => {
+  const handleResetDomainFilters = useCallback(() => {
+    isLocalDomainChangeRef.current = true;
     setDomainFilters({
       page: 0,
       size: 20,
     });
-  };
+  }, []);
 
   const handleTabChange = (tab: any) => {
     const normalized: "overview" | "registry" | "health" | "education" | "hr" | "pension" | "officers" | "users" | "settings" =
@@ -166,6 +171,7 @@ function AdminDashboardContent() {
       size: 20,
     };
 
+    isLocalDomainChangeRef.current = true;
     setActiveTab(normalized);
     setDomainFilters(cleanFilters);
 
@@ -178,6 +184,12 @@ function AdminDashboardContent() {
   // Read initial tab and filters from URL on mount or URL change
   useEffect(() => {
     if (!searchParams) return;
+
+    // Guard against circular feedback loops: ignore searchParams update if we initiated it locally
+    if (isLocalDomainChangeRef.current) {
+      isLocalDomainChangeRef.current = false;
+      return;
+    }
     const tabParam = searchParams.get("tab");
     if (tabParam) {
       if (tabParam === "health_domain" || tabParam === "health") {
@@ -248,40 +260,44 @@ function AdminDashboardContent() {
     });
   }, [searchParams]);
 
-  // Sync current tab's active filters to URL searchParams without carry-over
+  // Sync current tab's active filters to URL searchParams without carry-over (debounced to avoid circular loops)
   useEffect(() => {
     if (!isClient) return;
 
-    const params = new URLSearchParams();
-    if (activeTab && activeTab !== "overview") {
-      params.set("tab", activeTab);
-    }
-    if (domainFilters.query) params.set("query", domainFilters.query);
-    if (domainFilters.state) params.set("state", domainFilters.state);
-    if (domainFilters.lga) params.set("lga", domainFilters.lga);
-    if (domainFilters.gender) params.set("gender", domainFilters.gender);
-    if (domainFilters.educationalLevel) params.set("educationalLevel", domainFilters.educationalLevel);
-    if (domainFilters.isPregnant !== undefined) params.set("isPregnant", String(domainFilters.isPregnant));
-    if (domainFilters.hasHmo !== undefined) params.set("hasHmo", String(domainFilters.hasHmo));
-    if (domainFilters.bloodGroup) params.set("bloodGroup", domainFilters.bloodGroup);
-    if (domainFilters.bloodGenotype) params.set("bloodGenotype", domainFilters.bloodGenotype);
-    if (domainFilters.chronicCondition !== undefined) params.set("chronicCondition", String(domainFilters.chronicCondition));
-    if (domainFilters.employmentTrack) params.set("employmentTrack", domainFilters.employmentTrack);
-    if (domainFilters.cacStatus) params.set("cacStatus", domainFilters.cacStatus);
-    if (domainFilters.unemployedDesiredNextStep) params.set("unemployedDesiredNextStep", domainFilters.unemployedDesiredNextStep);
-    if (domainFilters.pensionStatus) params.set("pensionStatus", domainFilters.pensionStatus);
-    if (domainFilters.isRetired !== undefined) params.set("isRetired", String(domainFilters.isRetired));
-    if (domainFilters.interestedInAdultCareHome !== undefined) params.set("interestedInAdultCareHome", String(domainFilters.interestedInAdultCareHome));
-    if (domainFilters.page && domainFilters.page > 0) params.set("page", String(domainFilters.page));
-    if (domainFilters.size && domainFilters.size !== 20) params.set("size", String(domainFilters.size));
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (activeTab && activeTab !== "overview") {
+        params.set("tab", activeTab);
+      }
+      if (domainFilters.query) params.set("query", domainFilters.query);
+      if (domainFilters.state) params.set("state", domainFilters.state);
+      if (domainFilters.lga) params.set("lga", domainFilters.lga);
+      if (domainFilters.gender) params.set("gender", domainFilters.gender);
+      if (domainFilters.educationalLevel) params.set("educationalLevel", domainFilters.educationalLevel);
+      if (domainFilters.isPregnant !== undefined) params.set("isPregnant", String(domainFilters.isPregnant));
+      if (domainFilters.hasHmo !== undefined) params.set("hasHmo", String(domainFilters.hasHmo));
+      if (domainFilters.bloodGroup) params.set("bloodGroup", domainFilters.bloodGroup);
+      if (domainFilters.bloodGenotype) params.set("bloodGenotype", domainFilters.bloodGenotype);
+      if (domainFilters.chronicCondition !== undefined) params.set("chronicCondition", String(domainFilters.chronicCondition));
+      if (domainFilters.employmentTrack) params.set("employmentTrack", domainFilters.employmentTrack);
+      if (domainFilters.cacStatus) params.set("cacStatus", domainFilters.cacStatus);
+      if (domainFilters.unemployedDesiredNextStep) params.set("unemployedDesiredNextStep", domainFilters.unemployedDesiredNextStep);
+      if (domainFilters.pensionStatus) params.set("pensionStatus", domainFilters.pensionStatus);
+      if (domainFilters.isRetired !== undefined) params.set("isRetired", String(domainFilters.isRetired));
+      if (domainFilters.interestedInAdultCareHome !== undefined) params.set("interestedInAdultCareHome", String(domainFilters.interestedInAdultCareHome));
+      if (domainFilters.page && domainFilters.page > 0) params.set("page", String(domainFilters.page));
+      if (domainFilters.size && domainFilters.size !== 20) params.set("size", String(domainFilters.size));
 
-    const qs = params.toString();
-    const newUrl = qs ? `${pathname}?${qs}` : pathname;
-    const currentQs = typeof window !== "undefined" ? window.location.search.replace(/^\?/, "") : "";
+      const qs = params.toString();
+      const newUrl = qs ? `${pathname}?${qs}` : pathname;
+      const currentQs = typeof window !== "undefined" ? window.location.search.replace(/^\?/, "") : "";
 
-    if (qs !== currentQs) {
-      window.history.replaceState(null, "", newUrl);
-    }
+      if (qs !== currentQs) {
+        window.history.replaceState(null, "", newUrl);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, [activeTab, domainFilters, pathname, isClient]);
 
   // Dynamic role-based route guard

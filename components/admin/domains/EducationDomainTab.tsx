@@ -8,6 +8,7 @@ import { EducationDetailDrawer } from "./drawer/EducationDetailDrawer";
 import { useDomainCitizens } from "@/lib/hooks/useDomainCitizens";
 import {
   useEducationTierCounts,
+  useEducationTierCountsInMemory,
   EDUCATION_TIERS,
 } from "@/lib/hooks/useEducationDomainStats";
 import type { DomainFilterParams } from "@/lib/types/domainCitizens";
@@ -28,18 +29,31 @@ export function EducationDomainTab({
 }: EducationDomainTabProps) {
   const [selectedCitizenCode, setSelectedCitizenCode] = useState<string | null>(null);
 
-  // Fetch paginated domain citizens
-  const { data, isLoading } = useDomainCitizens({
+  // Fetch domain citizens (in-memory filtered or server fallback)
+  const { data, rawRecords, isServerMode, isLoading } = useDomainCitizens({
     ...filters,
     domain: "education",
   });
 
-  // Fetch live counts for the 6 educational tiers
-  const { counts, isLoading: isCountsLoading } = useEducationTierCounts({
+  // Zero-HTTP-request in-memory tier count aggregation
+  const memoryCounts = useEducationTierCountsInMemory(rawRecords, {
     state: filters.state,
     lga: filters.lga,
     gender: filters.gender,
   });
+
+  // Server-side fallback tier counts if dataset exceeds threshold
+  const serverCounts = useEducationTierCounts(
+    {
+      state: filters.state,
+      lga: filters.lga,
+      gender: filters.gender,
+    },
+    isServerMode
+  );
+
+  const counts = isServerMode ? serverCounts.counts : memoryCounts.counts;
+  const isCountsLoading = isServerMode ? serverCounts.isLoading : isLoading;
 
   const handleTierClick = (tierKey: string) => {
     if (filters.educationalLevel === tierKey) {
