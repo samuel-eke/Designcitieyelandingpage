@@ -5,9 +5,9 @@ import { Toaster } from "@/components/ui/sonner";
 import QueryProvider from "@/components/providers/QueryProvider";
 
 export const metadata: Metadata = {
-  title: "CitiEye Community Governance — Citizen Lifecycle Management Platform",
+  title: "Community Governance Eye — Citizen Lifecycle Management Platform",
   description:
-    "CitiEye Community Governance connects Nigerian citizens with welfare programmes, field officers, and government services — helping build a better Nigeria, one profile at a time.",
+    "Community Governance Eye connects Nigerian citizens with welfare programmes, field officers, and government services — helping build a better Nigeria, one profile at a time.",
 };
 
 export default function RootLayout({

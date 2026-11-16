@@ -33,7 +33,7 @@ function AuthContent() {
           </div>
           <div>
             <span className="text-xl font-serif font-bold text-stone-900 tracking-tight block leading-tight">
-              CitiEye Governance
+              Community Governance Eye
             </span>
             <span className="text-[10px] uppercase font-bold tracking-widest text-stone-400 block">
               Federal Citizen & Officer Portal

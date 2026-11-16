@@ -17,7 +17,6 @@ import {
 
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { FieldOfficerChat } from "@/components/dashboard/FieldOfficerChat";
 import { AnnouncementFeed } from "@/components/dashboard/AnnouncementFeed";
 import { DashboardOverviewTab } from "@/components/dashboard/tabs/DashboardOverviewTab";
 import { OpportunitiesTab } from "@/components/dashboard/tabs/OpportunitiesTab";
@@ -228,72 +227,72 @@ export default function DashboardPage() {
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
-  useEffect(() => {
-    const greetingName = citizenName ? citizenName.split(" ")[0] : "Citizen";
-    const cohortStr = cohortName ? ` for ${cohortName}` : "";
-    setChatMessages([
-      {
-        sender: "officer",
-        text: `Hello ${greetingName}, I am Officer Aisha Bello, your assigned Field Officer${cohortStr}. How can I assist you with your benefits, applications, or complaints today?`,
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      },
-    ]);
-  }, [citizenName, cohortName]);
+  // useEffect(() => {
+  //   const greetingName = citizenName ? citizenName.split(" ")[0] : "Citizen";
+  //   const cohortStr = cohortName ? ` for ${cohortName}` : "";
+  //   setChatMessages([
+  //     {
+  //       sender: "officer",
+  //       text: `Hello ${greetingName}, I am Officer Aisha Bello, your assigned Field Officer${cohortStr}. How can I assist you with your benefits, applications, or complaints today?`,
+  //       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+  //     },
+  //   ]);
+  // }, [citizenName, cohortName]);
 
   const [officerTyping, setOfficerTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [chatMessages, officerTyping]);
+  // useEffect(() => {
+  //   if (messagesEndRef.current) {
+  //     messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  //   }
+  // }, [chatMessages, officerTyping]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
-    const userText = chatInput.trim();
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    setChatMessages((prev) => [...prev, { sender: "citizen", text: userText, time: timeStr }]);
-    setChatInput("");
-    setOfficerTyping(true);
-    setTimeout(() => {
-      setOfficerTyping(false);
-      let replyText = `I have received your message. I am currently cross-referencing your profile credentials (${citizenCode}) with our federal dashboard. Is there anything else I can add to your review notes?`;
-      const textLower = userText.toLowerCase();
-      if (
-        textLower.includes("grant") ||
-        textLower.includes("capital") ||
-        textLower.includes("loan") ||
-        textLower.includes("money")
-      ) {
-        replyText = `Regarding your Business Capital Grant application: I see you are registered under ${cohortName}. I've noted down your inquiry. Please ensure your profile section is fully completed. I will expedite the vetting this afternoon!`;
-      } else if (
-        textLower.includes("scholarship") ||
-        textLower.includes("tuition") ||
-        textLower.includes("study")
-      ) {
-        replyText = `For the Scholarship programs, please complete your profile data in the 'Profile' tab. I'm verifying local university admission letters today.`;
-      } else if (
-        textLower.includes("complaint") ||
-        textLower.includes("waste") ||
-        textLower.includes("power")
-      ) {
-        replyText = `I see your complaint. The municipal team is currently dispatched for primary inspections. I've tagged your citizen code to escalate this ticket to high-priority.`;
-      } else if (textLower.includes("hello") || textLower.includes("hi") || textLower.includes("hey")) {
-        replyText = `Hello! Hope your day is going well. Let me know what information you need about your welfare track or assigned tasks.`;
-      }
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          sender: "officer",
-          text: replyText,
-          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        },
-      ]);
-    }, 1800);
-  };
+  // const handleSendMessage = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!chatInput.trim()) return;
+  //   const userText = chatInput.trim();
+  //   const now = new Date();
+  //   const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  //   setChatMessages((prev) => [...prev, { sender: "citizen", text: userText, time: timeStr }]);
+  //   setChatInput("");
+  //   setOfficerTyping(true);
+  //   setTimeout(() => {
+  //     setOfficerTyping(false);
+  //     let replyText = `I have received your message. I am currently cross-referencing your profile credentials (${citizenCode}) with our federal dashboard. Is there anything else I can add to your review notes?`;
+  //     const textLower = userText.toLowerCase();
+  //     if (
+  //       textLower.includes("grant") ||
+  //       textLower.includes("capital") ||
+  //       textLower.includes("loan") ||
+  //       textLower.includes("money")
+  //     ) {
+  //       replyText = `Regarding your Business Capital Grant application: I see you are registered under ${cohortName}. I've noted down your inquiry. Please ensure your profile section is fully completed. I will expedite the vetting this afternoon!`;
+  //     } else if (
+  //       textLower.includes("scholarship") ||
+  //       textLower.includes("tuition") ||
+  //       textLower.includes("study")
+  //     ) {
+  //       replyText = `For the Scholarship programs, please complete your profile data in the 'Profile' tab. I'm verifying local university admission letters today.`;
+  //     } else if (
+  //       textLower.includes("complaint") ||
+  //       textLower.includes("waste") ||
+  //       textLower.includes("power")
+  //     ) {
+  //       replyText = `I see your complaint. The municipal team is currently dispatched for primary inspections. I've tagged your citizen code to escalate this ticket to high-priority.`;
+  //     } else if (textLower.includes("hello") || textLower.includes("hi") || textLower.includes("hey")) {
+  //       replyText = `Hello! Hope your day is going well. Let me know what information you need about your welfare track or assigned tasks.`;
+  //     }
+  //     setChatMessages((prev) => [
+  //       ...prev,
+  //       {
+  //         sender: "officer",
+  //         text: replyText,
+  //         time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+  //       },
+  //     ]);
+  //   }, 1800);
+  // };
 
   // ── Sidebar Items ─────────────────────────────────────────────────────────
   const sidebarItems: SidebarItem[] = [
@@ -461,18 +460,6 @@ export default function DashboardPage() {
           </AnimatePresence>
         </main>
       </div>
-
-      {/* Floating Officer Chat */}
-      <FieldOfficerChat
-        chatOpen={chatOpen}
-        setChatOpen={setChatOpen}
-        chatInput={chatInput}
-        setChatInput={setChatInput}
-        chatMessages={chatMessages}
-        officerTyping={officerTyping}
-        handleSendMessage={handleSendMessage}
-        messagesEndRef={messagesEndRef}
-      />
     </div>
   );
 }

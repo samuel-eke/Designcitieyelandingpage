@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuthStore, RegisterFormData } from "./authStore";
 import { FieldWrapper, Input, Select } from "./FormUI";
 import { ShieldCheck, Eye, EyeOff, User, Mail, Phone, Lock, Calendar, FileText, MapPin, Heart } from "lucide-react";
@@ -113,7 +113,7 @@ export function SignupForm({ onSwitchToLogin }: Props) {
     if (calculatedIsUnder16) {
       const hasNin = !!(registerData.nin || "").trim();
       const hasParentNin = !!(registerData.parentNin && (registerData.parentNin || "").trim());
-      
+
       if (!hasNin && !hasParentNin) {
         e.nin = "Either NIN or Parent/Guardian's NIN is required for minors under 16";
       } else {
@@ -338,21 +338,35 @@ export function SignupForm({ onSwitchToLogin }: Props) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FieldWrapper
-              label={isUnder16 ? "National Identification Number (NIN) (Optional)" : "National Identification Number (NIN)"}
-              required={!isUnder16}
-              optional={isUnder16}
-              error={errors.nin}
-            >
-              <Input
-                type="text"
-                maxLength={11}
-                value={registerData.nin || ""}
-                onChange={(e) => setRegisterData({ nin: e.target.value })}
-                placeholder="5874123657"
-                error={!!errors.nin}
-              />
-            </FieldWrapper>
+            {isUnder16 == false ?
+
+              <FieldWrapper
+                label={isUnder16 ? "National Identification Number (NIN) (Optional)" : "National Identification Number (NIN)"}
+                required={!isUnder16}
+                optional={isUnder16}
+                error={errors.nin}
+              >
+                <Input
+                  type="text"
+                  maxLength={11}
+                  value={registerData.nin || ""}
+                  onChange={(e) => setRegisterData({ nin: e.target.value })}
+                  placeholder="5874123657"
+                  error={!!errors.nin}
+                />
+              </FieldWrapper> : 
+                <FieldWrapper label="Parent/Guardian's NIN" required error={errors.parentNin}>
+                  <Input
+                    type="text"
+                    maxLength={11}
+                    value={registerData.parentNin || ""}
+                    onChange={(e) => setRegisterData({ parentNin: e.target.value })}
+                    placeholder="5874123657"
+                    error={!!errors.parentNin}
+                  />
+                </FieldWrapper>
+             
+            }
 
             <FieldWrapper label="Access Password" required error={errors.password}>
               <div className="relative">
@@ -375,20 +389,9 @@ export function SignupForm({ onSwitchToLogin }: Props) {
             </FieldWrapper>
           </div>
 
-          {isUnder16 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FieldWrapper label="Parent/Guardian's NIN" required error={errors.parentNin}>
-                <Input
-                  type="text"
-                  maxLength={11}
-                  value={registerData.parentNin || ""}
-                  onChange={(e) => setRegisterData({ parentNin: e.target.value })}
-                  placeholder="5874123657"
-                  error={!!errors.parentNin}
-                />
-              </FieldWrapper>
-            </div>
-          )}
+          {/* {isUnder16 && (
+            
+          )} */}
         </div>
 
         {/* Location & Welfare Support Section */}
