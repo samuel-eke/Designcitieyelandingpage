@@ -575,7 +575,7 @@ function AdminDashboardContent() {
               </div>
               <div>
                 <span className="text-sm font-serif font-bold text-stone-100 tracking-tight block">
-                  CitiEye Registry
+                  Community Governance Eye
                 </span>
                 <span className="text-[10px] text-stone-500 font-mono tracking-wider uppercase block">
                   Internal Network
@@ -606,10 +606,10 @@ function AdminDashboardContent() {
                 </div>
                 <div className="space-y-3">
                   <h2 className="text-3xl font-serif font-bold text-stone-100 tracking-tight leading-tight">
-                    Government Agency Administration Portal
+                    Administration Portal
                   </h2>
                   <p className="text-stone-400 text-sm leading-relaxed font-light">
-                    Authorized access only. Use the cryptographic credentials provided by the Federal Ministry of Communications & Digital Economy.
+                    Authorized access only
                   </p>
                 </div>
               </div>
@@ -626,7 +626,7 @@ function AdminDashboardContent() {
                 </div>
 
                 <p className="text-[10px] text-stone-600 font-mono">
-                  CLASSIFICATION: Restricted System // FME-CE-REG
+                  CLASSIFICATION: Restricted System
                 </p>
               </div>
             </div>
@@ -716,7 +716,7 @@ function AdminDashboardContent() {
 
         {/* Footer */}
         <footer className="relative z-10 w-full text-center py-6 border-t border-stone-900/60 text-[10px] text-stone-500 font-mono px-6">
-          Federal Republic of Nigeria • CitiEye Agency Command Network • Restricted Domain
+          YMK Nigeria Project • Community Governance Eye Command Network • Restricted Domain
         </footer>
       </div>
     );
